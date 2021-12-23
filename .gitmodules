@@ -1,3 +1,4 @@
-[submodule "test/packages/EABase"]
-	path = test/packages/EABase
-	url = https://github.com/electronicarts/EABase.git
+[submodule "packages/EABase"]
+	path = packages/EABase
+	url = https://github.com/Mike-Leo-Smith/EABase.git
+	shallow = true
