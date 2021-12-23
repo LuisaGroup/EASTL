@@ -14,7 +14,7 @@ include(CommonCppFlags)
 # Library definition
 #-------------------------------------------------------------------------------------------
 file(GLOB EASTL_SOURCES "source/*.cpp")
-add_library(EASTL ${EASTL_SOURCES})
+add_library(EASTL SHARED ${EASTL_SOURCES})
 
 #-------------------------------------------------------------------------------------------
 # Defines
