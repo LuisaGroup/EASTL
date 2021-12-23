@@ -32,7 +32,6 @@ target_compile_definitions(EASTL PUBLIC
         EA_HAVE_CPP11_INITIALIZER_LIST=1
         EA_HAVE_CPP11_SYSTEM_ERROR=1
         EA_HAVE_CPP11_TYPEINDEX=1
-        EA_DLL=1
         EASTL_STD_TYPE_TRAITS_AVAILABLE=1
         EASTL_MOVE_SEMANTICS_ENABLED=1
         EASTL_VARIADIC_TEMPLATES_ENABLED=1
@@ -42,7 +41,9 @@ target_compile_definitions(EASTL PUBLIC
         EASTL_USER_LITERALS_ENABLED=1
         EASTL_INLINE_NAMESPACES_ENABLED=1)
 
-set_target_properties(EASTL PROPERTIES UNITY_BUILD ON)
+set_target_properties(EASTL PROPERTIES
+        UNITY_BUILD ON
+        WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 #-------------------------------------------------------------------------------------------
 # Defines
