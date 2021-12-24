@@ -47,8 +47,13 @@ namespace eastl
 	}
 
 
-	void* allocator::allocate(size_t n, size_t alignment, size_t /* offset */, int /* flags */)
+	void* allocator::allocate(size_t n, size_t alignment, size_t offset [[maybe_unused]], int flags)
 	{
+		EASTL_ASSERT(offset == 0u);
+		if (alignment < EASTL_SYSTEM_ALLOCATOR_MIN_ALIGNMENT) {
+			return allocate(n, flags);
+		}
+
 #ifdef EASTL_MIMALLOC_ENABLED
 		return mi_aligned_alloc(alignment, n);
 #else
