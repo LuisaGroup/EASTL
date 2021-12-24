@@ -21,7 +21,7 @@ namespace eastl
 	/// a new empty hashtable allocates no memory. It has two entries, one for 
 	/// the first lone empty (NULL) bucket, and one for the non-NULL trailing sentinel.
 	/// 
-	EASTL_API void* gpEmptyBucketArray[2] = { NULL, (void*)uintptr_t(~0) };
+//	EASTL_API void* gpEmptyBucketArray[2] = { NULL, (void*)uintptr_t(~0) };
 
 
 
