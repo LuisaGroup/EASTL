@@ -10,6 +10,9 @@ project(EASTL CXX)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts/CMake")
 include(CommonCppFlags)
 
+# mimalloc
+option(EASTL_ENABLE_MIMALLOC "Enable mimalloc" ${WIN32})
+
 #-------------------------------------------------------------------------------------------
 # Library definition
 #-------------------------------------------------------------------------------------------
@@ -38,7 +41,28 @@ target_compile_definitions(EASTL PUBLIC
         EASTL_VARIABLE_TEMPLATES_ENABLED=1
         EASTL_INLINE_VARIABLE_ENABLED=1
         EASTL_HAVE_CPP11_TYPE_TRAITS=1
-        EASTL_INLINE_NAMESPACES_ENABLED=1)
+        EASTL_INLINE_NAMESPACES_ENABLED=1
+        EASTL_ALLOCATOR_EXPLICIT_ENABLED=1
+        EASTL_USER_DEFINED_ALLOCATOR=1)
+
+if (WIN32 OR EASTL_ENABLE_MIMALLOC)
+    set(MI_OVERRIDE OFF CACHE BOOL "" FORCE)
+    set(MI_XMALLOC ON CACHE BOOL "" FORCE)
+    set(MI_USE_CXX OFF CACHE BOOL "" FORCE)
+    set(MI_OSX_ZONE ON CACHE BOOL "" FORCE)
+    set(MI_BUILD_STATIC ON CACHE BOOL "" FORCE)
+    set(MI_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+    set(MI_BUILD_OBJECT OFF CACHE BOOL "" FORCE)
+    set(MI_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    add_subdirectory(packages/mimalloc)
+    if (MSVC)
+        target_compile_options(mimalloc-static PRIVATE /W0)
+        target_compile_definitions(mimalloc-static PUBLIC _CRT_SECURE_NO_WARNINGS=1)
+    endif ()
+    set_target_properties(mimalloc-static PROPERTIES UNITY_BUILD ON)
+    target_compile_definitions(EASTL PRIVATE EASTL_MIMALLOC_ENABLED=1)
+    target_link_libraries(EASTL PRIVATE mimalloc-static)
+endif ()
 
 set_target_properties(EASTL PROPERTIES
         UNITY_BUILD ON
@@ -61,4 +85,4 @@ target_include_directories(EASTL PUBLIC include)
 # Dependencies
 #-------------------------------------------------------------------------------------------
 add_subdirectory(packages/EABase)
-target_link_libraries(EASTL EABase)
+target_link_libraries(EASTL PUBLIC EABase)

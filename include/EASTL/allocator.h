@@ -308,6 +308,9 @@ namespace eastl
 
 	} // namespace eastl
 
+#else
+
+#include <EASTL/allocator_luisa.inl>
 
 #endif // EASTL_USER_DEFINED_ALLOCATOR
 
