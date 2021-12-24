@@ -8,17 +8,17 @@
 // The primary distinctions between this hashtable and C++11 unordered containers are:
 //    - hashtable is savvy to an environment that doesn't have exception handling,
 //      as is sometimes the case with console or embedded environments.
-//    - hashtable is slightly more space-efficient than a conventional std hashtable 
-//      implementation on platforms with 64 bit size_t.  This is 
-//      because std STL uses size_t (64 bits) in data structures whereby 32 bits 
+//    - hashtable is slightly more space-efficient than a conventional std hashtable
+//      implementation on platforms with 64 bit size_t.  This is
+//      because std STL uses size_t (64 bits) in data structures whereby 32 bits
 //      of data would be fine.
-//    - hashtable can contain objects with alignment requirements. TR1 hash tables 
+//    - hashtable can contain objects with alignment requirements. TR1 hash tables
 //      cannot do so without a bit of tedious non-portable effort.
 //    - hashtable supports debug memory naming natively.
-//    - hashtable provides a find function that lets you specify a type that is 
-//      different from the hash table key type. This is particularly useful for 
+//    - hashtable provides a find function that lets you specify a type that is
+//      different from the hash table key type. This is particularly useful for
 //      the storing of string objects but finding them by char pointers.
-//    - hashtable provides a lower level insert function which lets the caller 
+//    - hashtable provides a lower level insert function which lets the caller
 //      specify the hash code and optionally the node instance.
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -72,7 +72,7 @@ namespace eastl
 		#define EASTL_HASHTABLE_DEFAULT_ALLOCATOR allocator_type(EASTL_HASHTABLE_DEFAULT_NAME)
 	#endif
 
-	
+
 	/// kHashtableAllocFlagBuckets
 	/// Flag to allocator which indicates that we are allocating buckets and not nodes.
 	enum { kHashtableAllocFlagBuckets = 0x00400000 };
@@ -81,10 +81,10 @@ namespace eastl
 	/// gpEmptyBucketArray
 	///
 	/// A shared representation of an empty hash table. This is present so that
-	/// a new empty hashtable allocates no memory. It has two entries, one for 
+	/// a new empty hashtable allocates no memory. It has two entries, one for
 	/// the first lone empty (NULL) bucket, and one for the non-NULL trailing sentinel.
-	/// 
-	extern EASTL_API void* gpEmptyBucketArray[2];
+	///
+	inline static const void* gpEmptyBucketArray[2] = { nullptr, (void*)uintptr_t(~0) };
 
 
 	/// EASTL_MACRO_SWAP
@@ -97,12 +97,12 @@ namespace eastl
 
 	/// hash_node
 	///
-	/// A hash_node stores an element in a hash table, much like a 
-	/// linked list node stores an element in a linked list. 
+	/// A hash_node stores an element in a hash table, much like a
+	/// linked list node stores an element in a linked list.
 	/// A hash_node additionally can, via template parameter,
-	/// store a hash code in the node to speed up hash calculations 
+	/// store a hash code in the node to speed up hash calculations
 	/// and comparisons in some cases.
-	/// 
+	///
 	template <typename Value, bool bCacheHashCode>
 	struct hash_node;
 
@@ -141,7 +141,7 @@ namespace eastl
 
 	// has_hashcode_member
 	//
-	// Custom type-trait that checks for the existence of a class data member 'mnHashCode'.  
+	// Custom type-trait that checks for the existence of a class data member 'mnHashCode'.
 	//
 	// In order to explicitly instantiate the hashtable without error we need to SFINAE away the functions that will
 	// fail to compile based on if the 'hash_node' contains a 'mnHashCode' member dictated by the hashtable template
@@ -151,7 +151,7 @@ namespace eastl
 	namespace Internal
 	{
 		template <class T>
-		struct has_hashcode_member 
+		struct has_hashcode_member
 		{
 		private:
 			template <class U> static eastl::no_type test(...);
@@ -160,12 +160,12 @@ namespace eastl
 			static const bool value = sizeof(test<T>(0)) == sizeof(eastl::yes_type);
 		};
 	}
-	
+
 	static_assert(Internal::has_hashcode_member<hash_node<int, true>>::value, "contains a mnHashCode member");
 	static_assert(!Internal::has_hashcode_member<hash_node<int, false>>::value, "doesn't contain a mnHashCode member");
 
 	// convenience macros to increase the readability of the code paths that must SFINAE on if the 'hash_node'
-	// contains the cached hashed value or not. 
+	// contains the cached hashed value or not.
 	#define ENABLE_IF_HAS_HASHCODE(T, RT) typename eastl::enable_if<Internal::has_hashcode_member<T>::value, RT>::type*
 	#define ENABLE_IF_HASHCODE_EASTLSIZET(T, RT) typename eastl::enable_if<eastl::is_convertible<T, eastl_size_t>::value, RT>::type
 	#define ENABLE_IF_TRUETYPE(T) typename eastl::enable_if<T::value>::type*
@@ -278,7 +278,7 @@ namespace eastl
 		void increment_bucket()
 		{
 			++mpBucket;
-			while(*mpBucket == NULL) // We store an extra bucket with some non-NULL value at the end 
+			while(*mpBucket == NULL) // We store an extra bucket with some non-NULL value at the end
 				++mpBucket;          // of the bucket array so that finding the end of the bucket
 			mpNode = *mpBucket;      // array is quick and simple.
 		}
@@ -352,7 +352,7 @@ namespace eastl
 
 	/// ht_distance
 	///
-	/// This function returns the same thing as distance() for 
+	/// This function returns the same thing as distance() for
 	/// forward iterators but returns zero for input iterators.
 	/// The reason why is that input iterators can only be read
 	/// once, and calling distance() on an input iterator destroys
@@ -425,7 +425,7 @@ namespace eastl
 		float GetMaxLoadFactor() const
 			{ return mfMaxLoadFactor; }
 
-		/// Return a bucket count no greater than nBucketCountHint, 
+		/// Return a bucket count no greater than nBucketCountHint,
 		/// Don't update member variables while at it.
 		static uint32_t GetPrevBucketCountOnly(uint32_t nBucketCountHint);
 
@@ -442,8 +442,8 @@ namespace eastl
 		uint32_t GetBucketCount(uint32_t nElementCount) const;
 
 		/// nBucketCount is current bucket count, nElementCount is current element count,
-		/// and nElementAdd is number of elements to be inserted. Do we need 
-		/// to increase bucket count? If so, return pair(true, n), where 
+		/// and nElementAdd is number of elements to be inserted. Do we need
+		/// to increase bucket count? If so, return pair(true, n), where
 		/// n is the new bucket count. If not, return pair(false, 0).
 		eastl::pair<bool, uint32_t>
 		GetRehashRequired(uint32_t nBucketCount, uint32_t nElementCount, uint32_t nElementAdd) const;
@@ -454,20 +454,20 @@ namespace eastl
 
 
 	///////////////////////////////////////////////////////////////////////
-	// Base classes for hashtable. We define these base classes because 
-	// in some cases we want to do different things depending on the 
+	// Base classes for hashtable. We define these base classes because
+	// in some cases we want to do different things depending on the
 	// value of a policy class. In some cases the policy class affects
 	// which member functions and nested typedefs are defined; we handle that
 	// by specializing base class templates. Several of the base class templates
 	// need to access other members of class template hashtable, so we use
-	// the "curiously recurring template pattern" (parent class is templated 
+	// the "curiously recurring template pattern" (parent class is templated
 	// on type of child class) for them.
 	///////////////////////////////////////////////////////////////////////
 
 
 	/// rehash_base
 	///
-	/// Give hashtable the get_max_load_factor functions if the rehash 
+	/// Give hashtable the get_max_load_factor functions if the rehash
 	/// policy is prime_rehash_policy.
 	///
 	template <typename RehashPolicy, typename Hashtable>
@@ -484,12 +484,12 @@ namespace eastl
 			return pThis->rehash_policy().GetMaxLoadFactor();
 		}
 
-		// If you want to make the hashtable never rehash (resize), 
+		// If you want to make the hashtable never rehash (resize),
 		// set the max load factor to be a very high number (e.g. 100000.f).
 		void set_max_load_factor(float fMaxLoadFactor)
 		{
 			Hashtable* const pThis = static_cast<Hashtable*>(this);
-			pThis->rehash_policy(prime_rehash_policy(fMaxLoadFactor));    
+			pThis->rehash_policy(prime_rehash_policy(fMaxLoadFactor));
 		}
 	};
 
@@ -507,17 +507,17 @@ namespace eastl
 	///       meaningless if we have a ranged hash function. This is because
 	///       a ranged hash function converts an object directly to its
 	///       bucket index without ostensibly using a hash code.
-	/// We also put the key extraction and equality comparison function 
+	/// We also put the key extraction and equality comparison function
 	/// objects here, for convenience.
 	///
-	template <typename Key, typename Value, typename ExtractKey, typename Equal, 
+	template <typename Key, typename Value, typename ExtractKey, typename Equal,
 			  typename H1, typename H2, typename H, bool bCacheHashCode>
 	struct hash_code_base;
 
 
 	/// hash_code_base
 	///
-	/// Specialization: ranged hash function, no caching hash codes. 
+	/// Specialization: ranged hash function, no caching hash codes.
 	/// H1 and H2 are provided but ignored. We define a dummy hash code type.
 	///
 	template <typename Key, typename Value, typename ExtractKey, typename Equal, typename H1, typename H2, typename H>
@@ -532,7 +532,7 @@ namespace eastl
 		H1 hash_function() const
 			{ return H1(); }
 
-		Equal equal_function() const // Deprecated. Use key_eq() instead, as key_eq is what the new C++ standard 
+		Equal equal_function() const // Deprecated. Use key_eq() instead, as key_eq is what the new C++ standard
 			{ return mEqual; }       // has specified in its hashtable (unordered_*) proposal.
 
 		const Equal& key_eq() const
@@ -592,7 +592,7 @@ namespace eastl
 
 	/// hash_code_base
 	///
-	/// Specialization: ranged hash function, cache hash codes. 
+	/// Specialization: ranged hash function, cache hash codes.
 	/// This combination is meaningless, so we provide only a declaration
 	/// and no definition.
 	///
@@ -603,8 +603,8 @@ namespace eastl
 
 	/// hash_code_base
 	///
-	/// Specialization: hash function and range-hashing function, 
-	/// no caching of hash codes. H is provided but ignored. 
+	/// Specialization: hash function and range-hashing function,
+	/// no caching of hash codes. H is provided but ignored.
 	/// Provides typedef and accessor required by TR1.
 	///
 	template <typename Key, typename Value, typename ExtractKey, typename Equal, typename H1, typename H2>
@@ -622,7 +622,7 @@ namespace eastl
 		H1 hash_function() const
 			{ return m_h1; }
 
-		Equal equal_function() const // Deprecated. Use key_eq() instead, as key_eq is what the new C++ standard 
+		Equal equal_function() const // Deprecated. Use key_eq() instead, as key_eq is what the new C++ standard
 			{ return mEqual; }       // has specified in its hashtable (unordered_*) proposal.
 
 		const Equal& key_eq() const
@@ -674,8 +674,8 @@ namespace eastl
 
 	/// hash_code_base
 	///
-	/// Specialization: hash function and range-hashing function, 
-	/// caching hash codes. H is provided but ignored. 
+	/// Specialization: hash function and range-hashing function,
+	/// caching hash codes. H is provided but ignored.
 	/// Provides typedef and accessor required by TR1.
 	///
 	template <typename Key, typename Value, typename ExtractKey, typename Equal, typename H1, typename H2>
@@ -693,7 +693,7 @@ namespace eastl
 		H1 hash_function() const
 			{ return m_h1; }
 
-		Equal equal_function() const // Deprecated. Use key_eq() instead, as key_eq is what the new C++ standard 
+		Equal equal_function() const // Deprecated. Use key_eq() instead, as key_eq is what the new C++ standard
 			{ return mEqual; }       // has specified in its hashtable (unordered_*) proposal.
 
 		const Equal& key_eq() const
@@ -761,17 +761,17 @@ namespace eastl
 	/// over the entire range [0, numeric_limits<uint32_t>::max()].
 	///
 	/// H2: a range-hashing function (in the terminology of Tavori and
-	/// Dreizin). This is a function which takes the output of H1 and 
+	/// Dreizin). This is a function which takes the output of H1 and
 	/// converts it to the range of [0, n]. Usually it merely takes the
 	/// output of H1 and mods it to n.
 	///
 	/// H: a ranged hash function (Tavori and Dreizin). This is merely
-	/// a class that combines the functionality of H1 and H2 together, 
+	/// a class that combines the functionality of H1 and H2 together,
 	/// possibly in some way that is somehow improved over H1 and H2
-	/// It is a binary function whose argument types are Key and size_t 
-	/// and whose result type is uint32_t. Given arguments k and n, the 
-	/// return value is in the range [0, n). Default: h(k, n) = h2(h1(k), n). 
-	/// If H is anything other than the default, H1 and H2 are ignored, 
+	/// It is a binary function whose argument types are Key and size_t
+	/// and whose result type is uint32_t. Given arguments k and n, the
+	/// return value is in the range [0, n). Default: h(k, n) = h2(h1(k), n).
+	/// If H is anything other than the default, H1 and H2 are ignored,
 	/// as H is thus overriding H1 and H2.
 	///
 	/// RehashPolicy: Policy class with three members, all of which govern
@@ -788,17 +788,17 @@ namespace eastl
 	///
 	/// bCacheHashCode: true if we store the value of the hash
 	/// function along with the value. This is a time-space tradeoff.
-	/// Storing it may improve lookup speed by reducing the number of 
+	/// Storing it may improve lookup speed by reducing the number of
 	/// times we need to call the Equal function.
 	///
 	/// bMutableIterators: true if hashtable::iterator is a mutable
-	/// iterator, false if iterator and const_iterator are both const 
+	/// iterator, false if iterator and const_iterator are both const
 	/// iterators. This is true for hash_map and hash_multimap,
 	/// false for hash_set and hash_multiset.
 	///
 	/// bUniqueKeys: true if the return value of hashtable::count(k)
-	/// is always at most one, false if it may be an arbitrary number. 
-	/// This is true for hash_set and hash_map and is false for 
+	/// is always at most one, false if it may be an arbitrary number.
+	/// This is true for hash_set and hash_map and is false for
 	/// hash_multiset and hash_multimap.
 	///
 	///////////////////////////////////////////////////////////////////////
@@ -808,8 +808,8 @@ namespace eastl
 	///
 	/// find_as
 	/// In order to support the ability to have a hashtable of strings but
-	/// be able to do efficiently lookups via char pointers (i.e. so they 
-	/// aren't converted to string objects), we provide the find_as 
+	/// be able to do efficiently lookups via char pointers (i.e. so they
+	/// aren't converted to string objects), we provide the find_as
 	/// function. This function allows you to do a find with a key of a
 	/// type other than the hashtable key type. See the find_as function
 	/// for more documentation on this.
@@ -820,9 +820,9 @@ namespace eastl
 	/// hash code.  This is useful for cases where the node's hash is
 	/// already known, allowing us to avoid a redundant hash operation
 	/// in the normal find path.
-	/// 
-	template <typename Key, typename Value, typename Allocator, typename ExtractKey, 
-			  typename Equal, typename H1, typename H2, typename H, 
+	///
+	template <typename Key, typename Value, typename Allocator, typename ExtractKey,
+			  typename Equal, typename H1, typename H2, typename H,
 			  typename RehashPolicy, bool bCacheHashCode, bool bMutableIterators, bool bUniqueKeys>
 	class hashtable
 		:   public rehash_base<RehashPolicy, hashtable<Key, Value, Allocator, ExtractKey, Equal, H1, H2, H, RehashPolicy, bCacheHashCode, bMutableIterators, bUniqueKeys> >,
@@ -846,7 +846,7 @@ namespace eastl
 		typedef hashtable_iterator<value_type, true,               bCacheHashCode>                  const_iterator;
 		typedef hash_node<value_type, bCacheHashCode>                                               node_type;
 		typedef typename type_select<bUniqueKeys, eastl::pair<iterator, bool>, iterator>::type      insert_return_type;
-		typedef hashtable<Key, Value, Allocator, ExtractKey, Equal, H1, H2, H, 
+		typedef hashtable<Key, Value, Allocator, ExtractKey, Equal, H1, H2, H,
 							RehashPolicy, bCacheHashCode, bMutableIterators, bUniqueKeys>           this_type;
 		typedef RehashPolicy                                                                        rehash_policy_type;
 		typedef ExtractKey                                                                          extract_key_type;
@@ -880,18 +880,18 @@ namespace eastl
 		allocator_type  mAllocator;     // To do: Use base class optimization to make this go away.
 
 	public:
-		hashtable(size_type nBucketCount, const H1&, const H2&, const H&, const Equal&, const ExtractKey&, 
+		hashtable(size_type nBucketCount, const H1&, const H2&, const H&, const Equal&, const ExtractKey&,
 				  const allocator_type& allocator = EASTL_HASHTABLE_DEFAULT_ALLOCATOR);
-		
+
 		template <typename FowardIterator>
-		hashtable(FowardIterator first, FowardIterator last, size_type nBucketCount, 
-				  const H1&, const H2&, const H&, const Equal&, const ExtractKey&, 
-				  const allocator_type& allocator = EASTL_HASHTABLE_DEFAULT_ALLOCATOR); 
-		
+		hashtable(FowardIterator first, FowardIterator last, size_type nBucketCount,
+				  const H1&, const H2&, const H&, const Equal&, const ExtractKey&,
+				  const allocator_type& allocator = EASTL_HASHTABLE_DEFAULT_ALLOCATOR);
+
 		hashtable(const hashtable& x);
 
 		// initializer_list ctor support is implemented in subclasses (e.g. hash_set).
-		// hashtable(initializer_list<value_type>, size_type nBucketCount, const H1&, const H2&, const H&, 
+		// hashtable(initializer_list<value_type>, size_type nBucketCount, const H1&, const H2&, const H&,
 		//           const Equal&, const ExtractKey&, const allocator_type& allocator = EASTL_HASHTABLE_DEFAULT_ALLOCATOR);
 
 		hashtable(this_type&& x);
@@ -971,7 +971,7 @@ namespace eastl
 		//size_type bucket(const key_type& k) const EA_NOEXCEPT
 		//    { return bucket_index(k, (hash code here), (uint32_t)mnBucketCount); }
 
-		// Returns the ratio of element count to bucket count. A return value of 1 means 
+		// Returns the ratio of element count to bucket count. A return value of 1 means
 		// there's an optimal 1 bucket for each element.
 		float load_factor() const EA_NOEXCEPT
 			{ return (float)mnElementCount / (float)mnBucketCount; }
@@ -983,7 +983,7 @@ namespace eastl
 		//    float get_max_load_factor() const;
 
 		// Inherited from the base class.
-		// If you want to make the hashtable never rehash (resize), 
+		// If you want to make the hashtable never rehash (resize),
 		// set the max load factor to be a very high number (e.g. 100000.f).
 		// set_max_load_factor comes from rehash_base.
 		//    void set_max_load_factor(float fMaxLoadFactor);
@@ -1019,7 +1019,7 @@ namespace eastl
 
 		// This overload attempts to mitigate the overhead associated with mismatched cv-quality elements of
 		// the hashtable pair. It can avoid copy overhead because it will perfect forward the user provided pair types
-		// until it can constructed in-place in the allocated hashtable node.  
+		// until it can constructed in-place in the allocated hashtable node.
 		//
 		// Ideally we would remove this overload as it deprecated and removed in C++17 but it currently causes
 		// performance regressions for hashtables with complex keys (keys that allocate resources).
@@ -1036,14 +1036,14 @@ namespace eastl
 		template <class P> // See comments below for the const value_type& equivalent to this function.
 		insert_return_type insert(hash_code_t c, node_type* pNodeNew, P&& otherValue);
 
-		// We provide a version of insert which lets the caller directly specify the hash value and 
+		// We provide a version of insert which lets the caller directly specify the hash value and
 		// a potential node to insert if needed. This allows for less thread contention in the case
 		// of a thread-shared hash table that's accessed during a mutex lock, because the hash calculation
-		// and node creation is done outside of the lock. If pNodeNew is supplied by the user (i.e. non-NULL) 
-		// then it must be freeable via the hash table's allocator. If the return value is true then this function 
-		// took over ownership of pNodeNew, else pNodeNew is still owned by the caller to free or to pass 
+		// and node creation is done outside of the lock. If pNodeNew is supplied by the user (i.e. non-NULL)
+		// then it must be freeable via the hash table's allocator. If the return value is true then this function
+		// took over ownership of pNodeNew, else pNodeNew is still owned by the caller to free or to pass
 		// to another call to insert. pNodeNew need not be assigned the value by the caller, as the insert
-		// function will assign value to pNodeNew upon insertion into the hash table. pNodeNew may be 
+		// function will assign value to pNodeNew upon insertion into the hash table. pNodeNew may be
 		// created by the user with the allocate_uninitialized_node function, and freed by the free_uninitialized_node function.
 		insert_return_type insert(hash_code_t c, node_type* pNodeNew, const value_type& value);
 
@@ -1073,7 +1073,7 @@ namespace eastl
 		/// than the hashtable value_type. A useful case of this is one whereby you have
 		/// a container of string objects but want to do searches via passing in char pointers.
 		/// The problem is that without this kind of find, you need to do the expensive operation
-		/// of converting the char pointer to a string so it can be used as the argument to the 
+		/// of converting the char pointer to a string so it can be used as the argument to the
 		/// find function.
 		///
 		/// Example usage (namespaces omitted for brevity):
@@ -1360,8 +1360,8 @@ namespace eastl
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	template <typename FowardIterator>
-	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::hashtable(FowardIterator first, FowardIterator last, size_type nBucketCount, 
-																	 const H1& h1, const H2& h2, const H& h, 
+	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::hashtable(FowardIterator first, FowardIterator last, size_type nBucketCount,
+																	 const H1& h1, const H2& h2, const H& h,
 																	 const Eq& eq, const EK& ek, const allocator_type& allocator)
 		:   rehash_base<rehash_policy_type, hashtable>(),
 			hash_code_base<key_type, value_type, extract_key_type, key_equal, h1_type, h2_type, h_type, kCacheHashCode>(ek, eq, h1, h2, h),
@@ -1445,7 +1445,7 @@ namespace eastl
 		}
 		else
 		{
-			// In this case, instead of allocate memory and copy nothing from x, 
+			// In this case, instead of allocate memory and copy nothing from x,
 			// we reset ourselves to a zero allocation state.
 			reset_lose_memory();
 		}
@@ -1670,7 +1670,7 @@ namespace eastl
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	inline void hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::DoFreeBuckets(node_type** pBucketArray, size_type n)
 	{
-		// If n <= 1, then pBucketArray is from the shared gpEmptyBucketArray. We don't test 
+		// If n <= 1, then pBucketArray is from the shared gpEmptyBucketArray. We don't test
 		// for pBucketArray == &gpEmptyBucketArray because one library have a different gpEmptyBucketArray
 		// than another but pass a hashtable to another. So we go by the size.
 		if(n > 1)
@@ -1813,7 +1813,7 @@ namespace eastl
 
 
 
-	template <typename K, typename V, typename A, typename EK, typename Eq, 
+	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	eastl::pair<typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::const_iterator,
 				typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::const_iterator>
@@ -1824,7 +1824,7 @@ namespace eastl
 
 		if (pNodeStart)
 		{
-			eastl::pair<const_iterator, const_iterator> pair(const_iterator(pNodeStart, mpBucketArray + start), 
+			eastl::pair<const_iterator, const_iterator> pair(const_iterator(pNodeStart, mpBucketArray + start),
 															 const_iterator(pNodeStart, mpBucketArray + start));
 			pair.second.increment_bucket();
 			return pair;
@@ -1836,7 +1836,7 @@ namespace eastl
 
 
 
-	template <typename K, typename V, typename A, typename EK, typename Eq, 
+	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	eastl::pair<typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::iterator,
 				typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::iterator>
@@ -1847,7 +1847,7 @@ namespace eastl
 
 		if (pNodeStart)
 		{
-			eastl::pair<iterator, iterator> pair(iterator(pNodeStart, mpBucketArray + start), 
+			eastl::pair<iterator, iterator> pair(iterator(pNodeStart, mpBucketArray + start),
 												 iterator(pNodeStart, mpBucketArray + start));
 			pair.second.increment_bucket();
 			return pair;
@@ -1869,8 +1869,8 @@ namespace eastl
 		const size_type   n      = (size_type)bucket_index(k, c, (uint32_t)mnBucketCount);
 		size_type         result = 0;
 
-		// To do: Make a specialization for bU (unique keys) == true and take 
-		// advantage of the fact that the count will always be zero or one in that case. 
+		// To do: Make a specialization for bU (unique keys) == true and take
+		// advantage of the fact that the count will always be zero or one in that case.
 		for(node_type* pNode = mpBucketArray[n]; pNode; pNode = pNode->mpNext)
 		{
 			if(compare(k, c, pNode))
@@ -1956,7 +1956,7 @@ namespace eastl
 
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
-	inline typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::node_type* 
+	inline typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::node_type*
 	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::DoFindNode(node_type* pNode, const key_type& k, hash_code_t c) const
 	{
 		for(; pNode; pNode = pNode->mpNext)
@@ -1972,7 +1972,7 @@ namespace eastl
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	template <typename U, typename BinaryPredicate>
-	inline typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::node_type* 
+	inline typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::node_type*
 	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::DoFindNodeT(node_type* pNode, const U& other, BinaryPredicate predicate) const
 	{
 		for(; pNode; pNode = pNode->mpNext)
@@ -1991,13 +1991,13 @@ namespace eastl
 	eastl::pair<typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::iterator, bool>
 	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::DoInsertValue(BoolConstantT, Args&&... args) // true_type means bUniqueKeys is true.
 	{
-		// Adds the value to the hash table if not already present. 
+		// Adds the value to the hash table if not already present.
 		// If already present then the existing value is returned via an iterator/bool pair.
 
-		// We have a chicken-and-egg problem here. In order to know if and where to insert the value, we need to get the 
+		// We have a chicken-and-egg problem here. In order to know if and where to insert the value, we need to get the
 		// hashtable key for the value. But we don't explicitly have a value argument, we have a templated Args&&... argument.
 		// We need the value_type in order to proceed, but that entails getting an instance of a value_type from the args.
-		// And it may turn out that the value is already present in the hashtable and we need to cancel the insertion, 
+		// And it may turn out that the value is already present in the hashtable and we need to cancel the insertion,
 		// despite having obtained a value_type to put into the hashtable. We have mitigated this problem somewhat by providing
 		// specializations of the insert function for const value_type& and value_type&&, and so the only time this function
 		// should get called is when args refers to arguments to construct a value_type.
@@ -2043,10 +2043,10 @@ namespace eastl
 		{
 			// To do: We have an inefficiency to deal with here. We allocated a node above but we are freeing it here because
 			// it turned out it wasn't needed. But we needed to create the node in order to get the hashtable key for
-			// the node. One possible resolution is to create specializations: DoInsertValue(true_type, value_type&&) and 
-			// DoInsertValue(true_type, const value_type&) which don't need to create a node up front in order to get the 
+			// the node. One possible resolution is to create specializations: DoInsertValue(true_type, value_type&&) and
+			// DoInsertValue(true_type, const value_type&) which don't need to create a node up front in order to get the
 			// hashtable key. Probably most users would end up using these pathways instead of this Args... pathway.
-			// While we should considering handling this to-do item, a lot of the performance limitations of maps and sets 
+			// While we should considering handling this to-do item, a lot of the performance limitations of maps and sets
 			// in practice is with finding elements rather than adding (potentially redundant) new elements.
 			DoFreeNode(pNodeNew);
 		}
@@ -2078,7 +2078,7 @@ namespace eastl
 		// The benefit is that equal_range can work in a sensible manner and that
 		// erase(value) can more quickly find equal values. The downside is that
 		// this insertion operation taking some extra time. How important is it to
-		// us that equal_range span all equal items? 
+		// us that equal_range span all equal items?
 		node_type* const pNodePrev = DoFindNode(mpBucketArray[n], k, c);
 
 		if(pNodePrev == NULL)
@@ -2129,7 +2129,7 @@ namespace eastl
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Note: The following insertion-related functions are nearly copies of the above three functions,
 	// but are for value_type&& and const value_type& arguments. It's useful for us to have the functions
-	// below, even when using a fully compliant C++11 compiler that supports the above functions. 
+	// below, even when using a fully compliant C++11 compiler that supports the above functions.
 	// The reason is because the specializations below are slightly more efficient because they can delay
 	// the creation of a node until it's known that it will be needed.
 	////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2141,7 +2141,7 @@ namespace eastl
 	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::DoInsertValueExtra(BoolConstantT, const key_type& k,
 		hash_code_t c, node_type* pNodeNew, value_type&& value, ENABLE_IF_TRUETYPE(BoolConstantT)) // true_type means bUniqueKeys is true.
 	{
-		// Adds the value to the hash table if not already present. 
+		// Adds the value to the hash table if not already present.
 		// If already present then the existing value is returned via an iterator/bool pair.
 		size_type         n     = (size_type)bucket_index(k, c, (uint32_t)mnBucketCount);
 		node_type* const  pNode = DoFindNode(mpBucketArray[n], k, c);
@@ -2150,7 +2150,7 @@ namespace eastl
 		{
 			const eastl::pair<bool, uint32_t> bRehash = mRehashPolicy.GetRehashRequired((uint32_t)mnBucketCount, (uint32_t)mnElementCount, (uint32_t)1);
 
-			// Allocate the new node before doing the rehash so that we don't 
+			// Allocate the new node before doing the rehash so that we don't
 			// do a rehash if the allocation throws.
 			#if EASTL_EXCEPTIONS_ENABLED
 				bool nodeAllocated;  // If exceptions are enabled then we we need to track if we allocated the node so we can free it in the catch block.
@@ -2222,7 +2222,7 @@ namespace eastl
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	template <typename BoolConstantT>
 	typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::iterator
-	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::DoInsertValueExtra(BoolConstantT, const key_type& k, hash_code_t c, node_type* pNodeNew, value_type&& value, 
+	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::DoInsertValueExtra(BoolConstantT, const key_type& k, hash_code_t c, node_type* pNodeNew, value_type&& value,
 			DISABLE_IF_TRUETYPE(BoolConstantT)) // false_type means bUniqueKeys is false.
 	{
 		const eastl::pair<bool, uint32_t> bRehash = mRehashPolicy.GetRehashRequired((uint32_t)mnBucketCount, (uint32_t)mnElementCount, (uint32_t)1);
@@ -2244,7 +2244,7 @@ namespace eastl
 		// The benefit is that equal_range can work in a sensible manner and that
 		// erase(value) can more quickly find equal values. The downside is that
 		// this insertion operation taking some extra time. How important is it to
-		// us that equal_range span all equal items? 
+		// us that equal_range span all equal items?
 		node_type* const pNodePrev = DoFindNode(mpBucketArray[n], k, c);
 
 		if(pNodePrev == NULL)
@@ -2308,10 +2308,10 @@ namespace eastl
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	template<typename BoolConstantT>
 	eastl::pair<typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::iterator, bool>
-	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::DoInsertValueExtra(BoolConstantT, const key_type& k, hash_code_t c, node_type* pNodeNew, const value_type& value, 
+	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::DoInsertValueExtra(BoolConstantT, const key_type& k, hash_code_t c, node_type* pNodeNew, const value_type& value,
 			ENABLE_IF_TRUETYPE(BoolConstantT)) // true_type means bUniqueKeys is true.
 	{
-		// Adds the value to the hash table if not already present. 
+		// Adds the value to the hash table if not already present.
 		// If already present then the existing value is returned via an iterator/bool pair.
 		size_type         n     = (size_type)bucket_index(k, c, (uint32_t)mnBucketCount);
 		node_type* const  pNode = DoFindNode(mpBucketArray[n], k, c);
@@ -2320,7 +2320,7 @@ namespace eastl
 		{
 			const eastl::pair<bool, uint32_t> bRehash = mRehashPolicy.GetRehashRequired((uint32_t)mnBucketCount, (uint32_t)mnElementCount, (uint32_t)1);
 
-			// Allocate the new node before doing the rehash so that we don't 
+			// Allocate the new node before doing the rehash so that we don't
 			// do a rehash if the allocation throws.
 			#if EASTL_EXCEPTIONS_ENABLED
 				bool nodeAllocated;  // If exceptions are enabled then we we need to track if we allocated the node so we can free it in the catch block.
@@ -2414,7 +2414,7 @@ namespace eastl
 		// The benefit is that equal_range can work in a sensible manner and that
 		// erase(value) can more quickly find equal values. The downside is that
 		// this insertion operation taking some extra time. How important is it to
-		// us that equal_range span all equal items? 
+		// us that equal_range span all equal items?
 		node_type* const pNodePrev = DoFindNode(mpBucketArray[n], k, c);
 
 		if(pNodePrev == NULL)
@@ -2565,7 +2565,7 @@ namespace eastl
 		// The benefit is that equal_range can work in a sensible manner and that
 		// erase(value) can more quickly find equal values. The downside is that
 		// this insertion operation taking some extra time. How important is it to
-		// us that equal_range span all equal items? 
+		// us that equal_range span all equal items?
 		node_type* const pNodePrev = DoFindNode(mpBucketArray[n], key, c);
 
 		if(pNodePrev == NULL)
@@ -2653,7 +2653,7 @@ namespace eastl
 		// The benefit is that equal_range can work in a sensible manner and that
 		// erase(value) can more quickly find equal values. The downside is that
 		// this insertion operation taking some extra time. How important is it to
-		// us that equal_range span all equal items? 
+		// us that equal_range span all equal items?
 		node_type* const pNodePrev = DoFindNode(mpBucketArray[n], key, c);
 
 		if(pNodePrev == NULL)
@@ -2778,7 +2778,7 @@ namespace eastl
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::insert_return_type
-	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::insert(const value_type& value) 
+	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::insert(const value_type& value)
 	{
 		return DoInsertValue(has_unique_keys_type(), value);
 	}
@@ -2787,7 +2787,7 @@ namespace eastl
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::insert_return_type
-	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::insert(hash_code_t c, node_type* pNodeNew, const value_type& value) 
+	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::insert(hash_code_t c, node_type* pNodeNew, const value_type& value)
 	{
 		// pNodeNew->mValue is expected to be uninitialized.
 		const key_type& k = mExtractKey(value);
@@ -2880,7 +2880,7 @@ namespace eastl
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	template <class M>
-	typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::iterator 
+	typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::iterator
 	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::insert_or_assign(const_iterator, const key_type& k, M&& obj)
 	{
 		return insert_or_assign(k, eastl::forward<M>(obj)).first; // we ignore the iterator hint
@@ -2889,7 +2889,7 @@ namespace eastl
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	template <class M>
-	typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::iterator 
+	typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::iterator
 	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::insert_or_assign(const_iterator, key_type&& k, M&& obj)
 	{
 		return insert_or_assign(eastl::move(k), eastl::forward<M>(obj)).first; // we ignore the iterator hint
@@ -2946,11 +2946,11 @@ namespace eastl
 
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
-	typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::size_type 
+	typename hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::size_type
 	hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::erase(const key_type& k)
 	{
-		// To do: Reimplement this function to do a single loop and not try to be 
-		// smart about element contiguity. The mechanism here is only a benefit if the 
+		// To do: Reimplement this function to do a single loop and not try to be
+		// smart about element contiguity. The mechanism here is only a benefit if the
 		// buckets are heavily overloaded; otherwise this mechanism may be slightly slower.
 
 		const hash_code_t c = get_hash_code(k);
@@ -3004,9 +3004,9 @@ namespace eastl
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
 	inline void hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>::reset_lose_memory() EA_NOEXCEPT
 	{
-		// The reset function is a special extension function which unilaterally 
-		// resets the container to an empty state without freeing the memory of 
-		// the contained objects. This is useful for very quickly tearing down a 
+		// The reset function is a special extension function which unilaterally
+		// resets the container to an empty state without freeing the memory of
+		// the contained objects. This is useful for very quickly tearing down a
 		// container built into scratch memory.
 		mnBucketCount  = 1;
 
@@ -3097,7 +3097,7 @@ namespace eastl
 		if(gpEmptyBucketArray[1] != (void*)uintptr_t(~0))
 			return false;
 
-		// Verify that we have at least one bucket. Calculations can  
+		// Verify that we have at least one bucket. Calculations can
 		// trigger division by zero exceptions otherwise.
 		if(mnBucketCount == 0)
 			return false;
@@ -3118,7 +3118,7 @@ namespace eastl
 				return false;
 		}
 
-		// Verify that the element count matches mnElementCount. 
+		// Verify that the element count matches mnElementCount.
 		size_type nElementCount = 0;
 
 		for(const_iterator temp = begin(), tempEnd = end(); temp != tempEnd; ++temp)
@@ -3146,7 +3146,7 @@ namespace eastl
 		}
 
 		if(i == end())
-			return (isf_valid | isf_current); 
+			return (isf_valid | isf_current);
 
 		return isf_none;
 	}
@@ -3159,19 +3159,19 @@ namespace eastl
 
 	// operator==, != have been moved to the specific container subclasses (e.g. hash_map).
 
-	// The following comparison operators are deprecated and will likely be removed in a  
+	// The following comparison operators are deprecated and will likely be removed in a
 	// future version of this package.
 	//
-	// Comparing hash tables for less-ness is an odd thing to do. We provide it for 
+	// Comparing hash tables for less-ness is an odd thing to do. We provide it for
 	// completeness, though the user is advised to be wary of how they use this.
 	//
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
-	inline bool operator<(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a, 
+	inline bool operator<(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a,
 						  const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& b)
 	{
 		// This requires hash table elements to support operator<. Since the hash table
-		// doesn't compare elements via less (it does so via equals), we must use the 
+		// doesn't compare elements via less (it does so via equals), we must use the
 		// globally defined operator less for the elements.
 		return eastl::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
 	}
@@ -3179,7 +3179,7 @@ namespace eastl
 
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
-	inline bool operator>(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a, 
+	inline bool operator>(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a,
 						  const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& b)
 	{
 		return b < a;
@@ -3188,7 +3188,7 @@ namespace eastl
 
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
-	inline bool operator<=(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a, 
+	inline bool operator<=(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a,
 						   const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& b)
 	{
 		return !(b < a);
@@ -3197,7 +3197,7 @@ namespace eastl
 
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
-	inline bool operator>=(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a, 
+	inline bool operator>=(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a,
 						   const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& b)
 	{
 		return !(a < b);
@@ -3206,7 +3206,7 @@ namespace eastl
 
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
-	inline void swap(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a, 
+	inline void swap(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a,
 					 const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& b)
 	{
 		a.swap(b);
