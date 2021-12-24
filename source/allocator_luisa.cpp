@@ -62,10 +62,10 @@ namespace eastl
 	}
 
 
-	void allocator::deallocate(void* p, size_t size)
+	void allocator::deallocate(void* p, size_t)
 	{
 #ifdef EASTL_MIMALLOC_ENABLED
-		mi_free_size(p, size);
+		mi_free(p);
 #else
 		free(p);
 #endif
