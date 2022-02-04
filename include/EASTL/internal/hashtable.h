@@ -1287,12 +1287,12 @@ namespace eastl
 
 		template <typename BoolConstantT,
 		          class piecewise_construct,
-		          class Key,
+		          class KeyT,
 		          class... Args,
 		          ENABLE_IF_TRUETYPE(BoolConstantT) = nullptr>
-		eastl::pair<iterator, bool> DoInsertValue(BoolConstantT, piecewise_construct&& c, Key&& key, Args&&... args);
-		template <typename BoolConstantT, class Key, class... Args, ENABLE_IF_TRUETYPE(BoolConstantT) = nullptr>
-		eastl::pair<iterator, bool> DoInsertValueForEmplace(BoolConstantT, Key&& key, Args&&... args);
+		eastl::pair<iterator, bool> DoInsertValue(BoolConstantT, piecewise_construct&& c, KeyT&& key, Args&&... args);
+		template <typename BoolConstantT, class KeyT, class... Args, ENABLE_IF_TRUETYPE(BoolConstantT) = nullptr>
+		eastl::pair<iterator, bool> DoInsertValueForEmplace(BoolConstantT, KeyT&& key, Args&&... args);
 
 		template <typename BoolConstantT, class... Args, DISABLE_IF_TRUETYPE(BoolConstantT) = nullptr>
 		iterator DoInsertValue(BoolConstantT, Args&&... args);
@@ -2577,7 +2577,7 @@ namespace eastl
 
 		if (pNode == NULL) // If value is not present... add it.
 		{
-			node_type* const pNodeNew = DoAllocateNode(eastl::forward<Key>(key), eastl::forward<Args>(args)...);
+			node_type* const pNodeNew = DoAllocateNode(std::forward<Key>(key), std::forward<Args>(args)...);
 			pNode = pNodeNew;
 			const eastl::pair<bool, uint32_t> bRehash =
 			    mRehashPolicy.GetRehashRequired((uint32_t)mnBucketCount, (uint32_t)mnElementCount, (uint32_t)1);
