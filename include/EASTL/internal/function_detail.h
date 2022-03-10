@@ -26,8 +26,8 @@
 
 #if EASTL_EXCEPTIONS_ENABLED
 EA_DISABLE_ALL_VC_WARNINGS()
-#include <new>
 #include <exception>
+#include <new>
 EA_RESTORE_ALL_VC_WARNINGS()
 #endif
 
@@ -228,18 +228,21 @@ namespace eastl
 
 				static void CopyFunctor(FunctorStorageType& to, const FunctorStorageType& from)
 				{
-					auto& allocator = *EASTLAllocatorDefault();
-					Functor* func = static_cast<Functor*>(allocator.allocate(sizeof(Functor), alignof(Functor), 0));
-#if EASTL_EXCEPTIONS_ENABLED
-					if (!func)
+					if constexpr (std::is_copy_constructible_v<Functor>)
 					{
-						throw std::bad_alloc();
-					}
+						auto& allocator = *EASTLAllocatorDefault();
+						Functor* func = static_cast<Functor*>(allocator.allocate(sizeof(Functor), alignof(Functor), 0));
+#if EASTL_EXCEPTIONS_ENABLED
+						if (!func)
+						{
+							throw std::bad_alloc();
+						}
 #else
-					EASTL_ASSERT_MSG(func != nullptr, "Allocation failed!");
+						EASTL_ASSERT_MSG(func != nullptr, "Allocation failed!");
 #endif
-					::new (static_cast<void*>(func)) Functor(*GetFunctorPtr(from));
-					GetFunctorPtrRef(to) = func;
+						::new (static_cast<void*>(func)) Functor(*GetFunctorPtr(from));
+						GetFunctorPtrRef(to) = func;
+					}
 				}
 
 				static void MoveFunctor(FunctorStorageType& to, FunctorStorageType& from) EA_NOEXCEPT
@@ -460,9 +463,9 @@ namespace eastl
 			template <
 			    typename Functor,
 			    typename = EASTL_INTERNAL_FUNCTION_DETAIL_VALID_FUNCTION_ARGS(Functor, R, Args..., function_detail)>
-			function_detail(Functor functor)
+			function_detail(Functor&& functor)
 			{
-				CreateForwardFunctor(eastl::move(functor));
+				CreateForwardFunctor(std::forward<Functor>(functor));
 			}
 
 			~function_detail() EA_NOEXCEPT { Destroy(); }
