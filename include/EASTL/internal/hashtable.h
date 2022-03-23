@@ -3800,7 +3800,7 @@ namespace eastl
 			DoRehash(bRehash.second);
 
 		for (; first != last; ++first)
-			DoInsertValueForEmplace(has_unique_keys_type(), *first);
+			DoInsertValueForEmplace(has_unique_keys_type(), first->first, first->second);
 	}
 
 

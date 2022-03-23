@@ -47,6 +47,7 @@ target_compile_definitions(EASTL PUBLIC
         EASTL_HAVE_CPP11_TYPE_TRAITS=1
         EASTL_INLINE_NAMESPACES_ENABLED=1
         EASTL_ALLOCATOR_EXPLICIT_ENABLED=1
+        EA_DLL=1
         EASTL_USER_DEFINED_ALLOCATOR=1)
 
 if (WIN32 OR EASTL_ENABLE_MIMALLOC)
@@ -64,7 +65,7 @@ if (WIN32 OR EASTL_ENABLE_MIMALLOC)
         target_compile_definitions(mimalloc-static PUBLIC _CRT_SECURE_NO_WARNINGS=1)
     endif ()
     set_target_properties(mimalloc-static PROPERTIES UNITY_BUILD ON)
-    target_compile_definitions(EASTL PRIVATE EASTL_MIMALLOC_ENABLED=1)
+    target_compile_definitions(EASTL PRIVATE EASTL_MIMALLOC_ENABLED=1 EASTL_PROJECT=1)
     target_link_libraries(EASTL PRIVATE mimalloc-static)
 endif ()
 
