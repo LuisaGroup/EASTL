@@ -87,8 +87,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef EASTL_VERSION
-#define EASTL_VERSION "3.18.00"
-#define EASTL_VERSION_N 31800
+	#define EASTL_VERSION   "3.19.03"
+	#define EASTL_VERSION_N  31903
 #endif
 
 
@@ -656,6 +656,17 @@ void EASTL_DEBUG_BREAK(); // User must define this externally.
 #error EASTL_DEBUG_BREAK is already defined yet you would like to override it. Please ensure no other headers are already defining EASTL_DEBUG_BREAK before this header (config.h) is included
 #endif
 #endif
+
+
+///////////////////////////////////////////////////////////////////////////////
+// EASTL_CRASH
+//
+// Executes an invalid memory write, which should result in an exception 
+// on most platforms.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+#define EASTL_CRASH() *((volatile int*)0) = 0xDEADC0DE;
 
 
 ///////////////////////////////////////////////////////////////////////////////
