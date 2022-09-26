@@ -251,6 +251,7 @@ namespace eastl
 		bool      empty() const EA_NOEXCEPT;
 		size_type size() const EA_NOEXCEPT;
 		size_type capacity() const EA_NOEXCEPT;
+		size_type max_size() const EA_NOEXCEPT;
 
 		void resize(size_type n, const value_type& value);
 		void resize(size_type n);
