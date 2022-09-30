@@ -74,6 +74,11 @@ set_target_properties(EASTL PROPERTIES
         UNITY_BUILD ON
         WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
+        CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15.0)
+    target_compile_options(EASTL PUBLIC -Wno-deprecated-builtins)
+endif ()
+
 #-------------------------------------------------------------------------------------------
 # Defines
 #-------------------------------------------------------------------------------------------
