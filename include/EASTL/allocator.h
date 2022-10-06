@@ -56,7 +56,6 @@ namespace eastl
 		allocator(const allocator& x, const char* pName);
 
 		allocator& operator=(const allocator& x);
-
 		void* allocate(size_t n, int flags = 0);
 		void* allocate(size_t n, size_t alignment, size_t offset, int flags = 0);
 		void* reallocate(void* originPtr, size_t n);
@@ -73,34 +72,6 @@ namespace eastl
 
 	bool operator==(const allocator& a, const allocator& b);
 	bool operator!=(const allocator& a, const allocator& b);
-
-
-
-	/// dummy_allocator
-	///
-	/// Defines an allocator which does nothing. It returns NULL from allocate calls.
-	///
-	class EASTL_API dummy_allocator
-	{
-	public:
-		EASTL_ALLOCATOR_EXPLICIT dummy_allocator(const char* = NULL) { }
-		dummy_allocator(const dummy_allocator&) { }
-		dummy_allocator(const dummy_allocator&, const char*) { }
-
-		dummy_allocator& operator=(const dummy_allocator&) { return *this; }
-
-		void* allocate(size_t, int = 0)                 { return NULL; }
-		void* allocate(size_t, size_t, size_t, int = 0) { return NULL; }
-		void  deallocate(void*, size_t)                 { }
-
-		const char* get_name() const      { return ""; }
-		void        set_name(const char*) { }
-	};
-
-	inline bool operator==(const dummy_allocator&, const dummy_allocator&) { return true;  }
-	inline bool operator!=(const dummy_allocator&, const dummy_allocator&) { return false; }
-
-
 
 	/// Defines a static default allocator which is constant across all types.
 	/// This is different from get_default_allocator, which is is bound at

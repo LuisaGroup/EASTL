@@ -38,7 +38,6 @@ target_compile_definitions(EASTL PUBLIC
         EA_HAVE_CPP11_INITIALIZER_LIST=1
         EA_HAVE_CPP11_SYSTEM_ERROR=1
         EA_HAVE_CPP11_TYPEINDEX=1
-        EASTL_USER_LITERALS_ENABLED=0
         EASTL_STD_ITERATOR_CATEGORY_ENABLED=1
         EASTL_STD_TYPE_TRAITS_AVAILABLE=1
         EASTL_MOVE_SEMANTICS_ENABLED=1
@@ -62,18 +61,18 @@ if (WIN32 OR EASTL_ENABLE_MIMALLOC)
     set(MI_BUILD_TESTS OFF CACHE BOOL "" FORCE)
     add_subdirectory(packages/mimalloc)
     if (MSVC)
-        target_compile_options(mimalloc-static PRIVATE /W0)
+        target_compile_options(mimalloc-static PRIVATE /W0 /Gd)
         target_compile_definitions(mimalloc-static PUBLIC _CRT_SECURE_NO_WARNINGS=1)
     endif ()
     set_target_properties(mimalloc-static PROPERTIES UNITY_BUILD ON)
-    target_compile_definitions(EASTL PRIVATE EASTL_MIMALLOC_ENABLED=1 EASTL_PROJECT=1)
+    target_compile_definitions(EASTL PRIVATE EASTL_MIMALLOC_ENABLED=1)
     target_link_libraries(EASTL PRIVATE mimalloc-static)
 endif ()
+target_compile_definitions(EASTL PRIVATE LC_EASTL_EXPORT=1 EASTL_PROJECT=1)
 
 set_target_properties(EASTL PROPERTIES
         UNITY_BUILD ON
         WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
 #-------------------------------------------------------------------------------------------
 # Defines
 #-------------------------------------------------------------------------------------------

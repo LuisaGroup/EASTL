@@ -1191,7 +1191,8 @@ namespace eastl
 	{
 		typedef ref_count_sp_t_inst<T, Allocator> ref_count_type;
 		shared_ptr<T> ret;
-		void* const pMemory = EASTLAlloc(const_cast<Allocator&>(allocator), sizeof(ref_count_type));
+		auto&& alloc = const_cast<Allocator&>(allocator);
+		void* const pMemory = const_cast<Allocator&>(allocator).allocate(sizeof(ref_count_type));
 		if(pMemory)
 		{
 			ref_count_type* pRefCount = ::new(pMemory) ref_count_type(allocator, eastl::forward<Args>(args)...);
