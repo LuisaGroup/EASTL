@@ -284,6 +284,7 @@ namespace eastl
 		iterator emplace(const_iterator position, Args&&... args);
 
 		template<class... Args>
+		requires(std::is_constructible_v<T, Args&&...>)
 		reference emplace_back(Args&&... args);
 
 		iterator insert(const_iterator position, const value_type& value);
@@ -1100,6 +1101,7 @@ namespace eastl
 
 	template <typename T, typename Allocator>
 	template<class... Args>
+	requires(std::is_constructible_v<T, Args&&...>)
 	inline typename vector<T, Allocator>::reference
 	vector<T, Allocator>::emplace_back(Args&&... args)
 	{
