@@ -1,6 +1,7 @@
 BuildProject({
 	projectName = "EASTL",
-	projectType = "shared"
+	projectType = "shared",
+	unityBuildBatch = 64
 })
 add_includedirs("include/", "packages/EABase/include/Common", {
 	public = true
