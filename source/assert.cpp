@@ -4,7 +4,8 @@
 
 
 #include <EASTL/internal/config.h>
-#include <EASTL/string.h>
+// #include <EASTL/string.h>
+#include <stdio.h>
 #include <EABase/eabase.h>
 
 #if defined(EA_PLATFORM_WINDOWS_KERNEL)
