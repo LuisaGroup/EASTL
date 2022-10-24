@@ -540,7 +540,7 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return mOverflowAllocator.get_name();
+			return EASTL_FIXED_POOL_DEFAULT_NAME;
 		}
 
 
@@ -714,7 +714,7 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return mPool.get_name();
+			return EASTL_FIXED_POOL_DEFAULT_NAME;
 		}
 
 
@@ -850,7 +850,7 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return mPool.get_name();
+			return EASTL_FIXED_POOL_DEFAULT_NAME;
 		}
 
 
@@ -1075,7 +1075,7 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return mPool.get_name();
+			return EASTL_FIXED_POOL_DEFAULT_NAME;
 		}
 
 
@@ -1247,7 +1247,7 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return mPool.get_name();
+			return EASTL_FIXED_POOL_DEFAULT_NAME;
 		}
 
 
@@ -1399,7 +1399,7 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return mOverflowAllocator.get_name();
+			return EASTL_FIXED_POOL_DEFAULT_NAME;
 		}
 
 		void set_name(const char* pName)

@@ -130,6 +130,7 @@ namespace eastl
 		bool      can_overflow() const;         // Returns the value of the bEnableOverflow template parameter.
 
 		void*     push_back_uninitialized();
+		void*     push_back_uninitialized(size_t n);
 		void      push_back(const value_type& value);   // We implement push_back here because we have a specialization that's 
 		reference push_back();                          // smaller for the case of overflow being disabled.
 		void      push_back(value_type&& value);
@@ -142,6 +143,8 @@ namespace eastl
 	protected:
 		void*     DoPushBackUninitialized(true_type);
 		void*     DoPushBackUninitialized(false_type);
+		void*     DoPushBackUninitialized(true_type, size_t n);
+		void*     DoPushBackUninitialized(false_type, size_t n);
 
 		void      DoPushBack(true_type, const value_type& value);
 		void      DoPushBack(false_type, const value_type& value);
@@ -470,6 +473,11 @@ namespace eastl
 	{
 		return DoPushBackUninitialized(typename type_select<bEnableOverflow, true_type, false_type>::type());
 	}
+	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
+	inline void* fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::push_back_uninitialized(size_t n)
+	{
+		return DoPushBackUninitialized(typename type_select<bEnableOverflow, true_type, false_type>::type(), n);
+	}
 
 
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
@@ -477,12 +485,24 @@ namespace eastl
 	{
 		return base_type::push_back_uninitialized();
 	}
+	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
+	inline void* fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::DoPushBackUninitialized(true_type, size_t n)
+	{
+		return base_type::push_back_uninitialized(n);
+	}
 
 
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
 	inline void* fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::DoPushBackUninitialized(false_type)
 	{
 		EASTL_ASSERT(mpEnd < internalCapacityPtr());
+
+		return mpEnd++;
+	}
+	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
+	inline void* fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::DoPushBackUninitialized(false_type, size_t n)
+	{
+		EASTL_ASSERT((mpEnd + n) <= internalCapacityPtr());
 
 		return mpEnd++;
 	}

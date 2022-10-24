@@ -80,34 +80,7 @@ EA_DISABLE_VC_WARNING(4345 4244 4127);
 
 namespace eastl
 {
-	namespace detail
-	{
-		template <typename T>
-		struct TypeOf
-		{
-			using Type = T;
-		};
-		template <typename F>
-		constexpr auto VectorFuncReturnType()
-		{
-			if constexpr (std::is_invocable_v<F>)
-			{
-				return TypeOf<std::invoke_result_t<F>>{};
-			}
-			else if constexpr (std::is_invocable_v<F, size_t>)
-			{
-				return TypeOf<std::invoke_result_t<F, size_t>>{};
-			}
-			else
-			{
-				return TypeOf<void>{};
-			}
-		}
-		template <typename F>
-		using VectorFuncReturnType_t = typename decltype(VectorFuncReturnType<F>())::Type;
-		template <typename T, typename... Func>
-		constexpr bool push_back_func_valid = std::is_constructible_v<T, detail::VectorFuncReturnType_t<Func>&&...>;
-	} // namespace detail
+
 /// EASTL_VECTOR_DEFAULT_NAME
 ///
 /// Defines a default container name in the absence of a user-provided name.
@@ -297,6 +270,7 @@ namespace eastl
 
 		bool empty() const EA_NOEXCEPT;
 		size_type size() const EA_NOEXCEPT;
+		size_type size_bytes() const EA_NOEXCEPT;
 		size_type capacity() const EA_NOEXCEPT;
 		size_type max_size() const EA_NOEXCEPT { return capacity(); }
 
@@ -327,9 +301,10 @@ namespace eastl
 
 		void push_back(const value_type& value);
 		reference push_back();
-		void* push_back_uninitialized();
+		void* push_back_uninitialized(); 
+		void* push_back_uninitialized(size_t count); 
 		void push_back(value_type&& value);
-		void pop_back();
+		T pop_back();
 
 		template <class... Args>
 		iterator emplace(const_iterator position, Args&&... args);
@@ -455,45 +430,6 @@ namespace eastl
 		void DoGrow(size_type n);
 
 		void DoSwap(this_type& x);
-public:
-		template <typename... Func>
-		void push_back_func(size_type n, Func&&... f) EA_NOEXCEPT
-		{
-			size_t index = 0;
-			auto CallFunc = [&]<typename FT>(FT&& f) -> decltype(auto)
-			{
-				if constexpr (std::is_invocable_v<FT, size_type>)
-				{
-					return f(index);
-				}
-				else
-				{
-					return f();
-				}
-			};
-			if (n > size_type(internalCapacityPtr() - mpEnd))
-			{
-				const size_type nPrevSize = size_type(mpEnd - mpBegin);
-				const size_type nGrowSize = GetNewCapacity(nPrevSize);
-				const size_type nNewSize = eastl::max(nGrowSize, nPrevSize + n);
-				pointer const pNewData = DoAllocate(nNewSize);
-				pointer pNewEnd = eastl::uninitialized_move_ptr_if_noexcept(mpBegin, mpEnd, pNewData);
-				eastl::destruct(mpBegin, mpEnd);
-				DoFree(mpBegin, (size_type)(internalCapacityPtr() - mpBegin));
-
-				mpBegin = pNewData;
-				mpEnd = pNewEnd;
-				internalCapacityPtr() = pNewData + nNewSize;
-			}
-			auto dstPtr = mpEnd + n;
-			for (auto ptr = mpEnd; ptr != dstPtr; ++ptr)
-			{
-				::new (ptr) T(CallFunc(f)...);
-				++index;
-			}
-			mpEnd = dstPtr;
-		}
-
 	}; // class vector
 
 
@@ -875,6 +811,11 @@ public:
 	{
 		return (size_type)(mpEnd - mpBegin);
 	}
+	template <typename T, typename Allocator>
+	inline typename vector<T, Allocator>::size_type vector<T, Allocator>::size_bytes() const EA_NOEXCEPT
+	{
+		return reinterpret_cast<size_type>(mpEnd) - reinterpret_cast<size_type>(mpBegin);
+	}
 
 
 	template <typename T, typename Allocator>
@@ -1144,18 +1085,60 @@ public:
 
 		return mpEnd++;
 	}
+	template <typename T, typename Allocator>
+	inline void* vector<T, Allocator>::push_back_uninitialized(size_t n)
+	{
+		if (n > size_type(internalCapacityPtr() - mpEnd))
+		{
+			const size_type nPrevSize = size_type(mpEnd - mpBegin);
+			const size_type nGrowSize = GetNewCapacity(nPrevSize);
+			const size_type nNewSize = eastl::max(nGrowSize, nPrevSize + n);
+			pointer const pNewData = DoAllocate(nNewSize);
+
+#if EASTL_EXCEPTIONS_ENABLED
+			pointer pNewEnd = pNewData; // Assign pNewEnd a value here in case the copy throws.
+			try
+			{
+				pNewEnd = eastl::uninitialized_move_ptr_if_noexcept(mpBegin, mpEnd, pNewData);
+			}
+			catch (...)
+			{
+				eastl::destruct(pNewData, pNewEnd);
+				DoFree(pNewData, nNewSize);
+				throw;
+			}
+#else
+			pointer pNewEnd = eastl::uninitialized_move_ptr_if_noexcept(mpBegin, mpEnd, pNewData);
+#endif
+
+			eastl::destruct(mpBegin, mpEnd);
+			DoFree(mpBegin, (size_type)(internalCapacityPtr() - mpBegin));
+
+			mpBegin = pNewData;
+			mpEnd = pNewEnd;
+			internalCapacityPtr() = pNewData + nNewSize;
+		}
+		auto ptr = mpEnd;
+		mpEnd += n;
+		return ptr;
+	}
 
 
 	template <typename T, typename Allocator>
-	inline void vector<T, Allocator>::pop_back()
+	inline T vector<T, Allocator>::pop_back()
 	{
 #if EASTL_ASSERT_ENABLED
 		if (EASTL_UNLIKELY(mpEnd <= mpBegin))
 			EASTL_FAIL_MSG("vector::pop_back -- empty vector");
 #endif
-
+		struct DtorLast
+		{
+			T* ptr;
+			~DtorLast() { ptr->~T(); }
+		};
 		--mpEnd;
-		mpEnd->~value_type();
+		DtorLast dtor{mpEnd};
+		return std::move(*mpEnd);
 	}
 
 
