@@ -546,7 +546,7 @@ namespace eastl
 
 		void set_name(const char* pName)
 		{
-			mOverflowAllocator.set_name(pName);
+			// mOverflowAllocator.set_name(pName);
 		}
 
 
@@ -720,7 +720,7 @@ namespace eastl
 
 		void set_name(const char* pName)
 		{
-			mPool.set_name(pName);
+			// mPool.set_name(pName);
 		}
 
 
@@ -856,7 +856,7 @@ namespace eastl
 
 		void set_name(const char* pName)
 		{
-			mPool.set_name(pName);
+			// mPool.set_name(pName);
 		}
 
 
@@ -1081,7 +1081,7 @@ namespace eastl
 
 		void set_name(const char* pName)
 		{
-			mPool.set_name(pName);
+			// mPool.set_name(pName);
 		}
 
 
@@ -1253,7 +1253,7 @@ namespace eastl
 
 		void set_name(const char* pName)
 		{
-			mPool.set_name(pName);
+			// mPool.set_name(pName);
 		}
 
 
@@ -1383,12 +1383,12 @@ namespace eastl
 
 		void* allocate(size_t n, int flags = 0)
 		{
-			return mOverflowAllocator.allocate(n, flags);
+			return mOverflowAllocator.allocate(n);
 		}
 
 		void* allocate(size_t n, size_t alignment, size_t offset, int flags = 0)
 		{
-			return mOverflowAllocator.allocate(n, alignment, offset, flags);
+			return mOverflowAllocator.allocate(n, alignment, offset);
 		}
 
 		void deallocate(void* p, size_t n)
@@ -1404,7 +1404,7 @@ namespace eastl
 
 		void set_name(const char* pName)
 		{
-			mOverflowAllocator.set_name(pName);
+			// mOverflowAllocator.set_name(pName);
 		}
 
 		const overflow_allocator_type& get_overflow_allocator() const EA_NOEXCEPT

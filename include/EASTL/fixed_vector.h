@@ -67,7 +67,7 @@ namespace eastl
 	///    fixedVector.resize(200);
 	///    fixedVector.clear();
 	///
-	template <typename T, size_t nodeCount, bool bEnableOverflow = true, typename OverflowAllocator = typename eastl::type_select<bEnableOverflow, EASTLAllocatorType, EASTLDummyAllocatorType>::type>
+	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
 	class fixed_vector : public vector<T, fixed_vector_allocator<sizeof(T), nodeCount, EASTL_ALIGN_OF(T), 0, bEnableOverflow, OverflowAllocator> >
 	{
 	public:
