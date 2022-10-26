@@ -29,7 +29,7 @@
 #endif
 
 #include <EASTL/list.h>
-#include <unordered_map>
+#include <EASTL/unordered_map.h>
 #include <EASTL/optional.h>
 
 namespace eastl
@@ -70,7 +70,7 @@ namespace eastl
 	          typename Value,
 	          typename Allocator = EASTLAllocatorType,
 	          typename list_type = eastl::list<Key, Allocator>,
-	          typename map_type = std::unordered_map<Key,
+	          typename map_type = eastl::unordered_map<Key,
 	                                                   eastl::pair<Value, typename list_type::iterator>,
 	                                                   eastl::hash<Key>,
 	                                                   eastl::equal_to<Key>,

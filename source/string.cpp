@@ -4,9 +4,8 @@
 
 
 #include <EASTL/internal/config.h>
-// #include <EASTL/string.h>
 #include <EABase/eabase.h>
-#include <string.h>
+#include <cstring>
 
 
 namespace eastl
