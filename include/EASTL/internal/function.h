@@ -31,10 +31,10 @@ namespace eastl
 	class function;
 
 	template <typename R, typename... Args>
-	class function<R(Args...)> : public internal::function_detail<EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE, R(Args...)>
+	class function<R(Args...)> : public internal::function_detail<EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE, true, R(Args...)>
 	{
 	private:
-		using Base = internal::function_detail<EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE, R(Args...)>;
+		using Base = internal::function_detail<EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE, true, R(Args...)>;
 
 	public:
 		using typename Base::result_type;
@@ -144,10 +144,10 @@ namespace eastl
 
 	template <typename R, typename... Args>
 	class move_only_function<R(Args...)>
-	    : public internal::function_detail<EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE, R(Args...)>
+	    : public internal::function_detail<EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE, false, R(Args...)>
 	{
 	private:
-		using Base = internal::function_detail<EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE, R(Args...)>;
+		using Base = internal::function_detail<EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE, false, R(Args...)>;
 
 	public:
 		using typename Base::result_type;
@@ -167,11 +167,7 @@ namespace eastl
 
 		~move_only_function() EA_NOEXCEPT = default;
 
-		move_only_function& operator=(const move_only_function& other)
-		{
-			Base::operator=(other);
-			return *this;
-		}
+		move_only_function& operator=(const move_only_function& other) = delete;
 
 		move_only_function& operator=(move_only_function&& other)
 		{
