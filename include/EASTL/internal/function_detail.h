@@ -496,7 +496,7 @@ namespace eastl
 			    typename = EASTL_INTERNAL_FUNCTION_DETAIL_VALID_FUNCTION_ARGS(Functor, R, Args..., function_detail)>
 			function_detail(Functor&& functor)
 			{
-				CreateForwardFunctor<Functor, isCopyable>(std::forward<Functor>(functor));
+				CreateForwardFunctor(std::forward<Functor>(functor));
 			}
 
 			~function_detail() EA_NOEXCEPT { Destroy(); }
@@ -538,7 +538,7 @@ namespace eastl
 			function_detail& operator=(Functor&& functor)
 			{
 				Destroy();
-				CreateForwardFunctor<Functor, isCopyable>(eastl::forward<Functor>(functor));
+				CreateForwardFunctor(eastl::forward<Functor>(functor));
 				return *this;
 			}
 
@@ -546,7 +546,7 @@ namespace eastl
 			function_detail& operator=(eastl::reference_wrapper<Functor> f) EA_NOEXCEPT
 			{
 				Destroy();
-				CreateForwardFunctor<eastl::reference_wrapper<Functor>, isCopyable>(f);
+				CreateForwardFunctor(f);
 				return *this;
 			}
 
@@ -660,7 +660,7 @@ namespace eastl
 				other.mInvokeFuncPtr = &DefaultInvoker;
 			}
 
-			template <typename Functor, bool isCopyable>
+			template <typename Functor>
 			void CreateForwardFunctor(Functor&& functor)
 			{
 				using DecayedFunctorType = typename eastl::decay<Functor>::type;
@@ -684,8 +684,8 @@ namespace eastl
 			typedef void* (*ManagerFuncPtr)(void*, void*, typename Base::ManagerOperations);
 			typedef R (*InvokeFuncPtr)(Args..., const FunctorStorageType&);
 
-			EA_DISABLE_GCC_WARNING(-Wreturn - type);
-			EA_DISABLE_CLANG_WARNING(-Wreturn - type);
+			EA_DISABLE_GCC_WARNING(-Wreturn-type);
+			EA_DISABLE_CLANG_WARNING(-Wreturn-type);
 			EA_DISABLE_VC_WARNING(4716); // 'function' must return a value
 			// We cannot assume that R is default constructible.
 			// This function is called only when the function object CANNOT be called because it is empty,
