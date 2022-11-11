@@ -88,6 +88,7 @@ namespace eastl
 		using base_type::get_allocator;
 		using base_type::mpBegin;
 		using base_type::mpEnd;
+		using base_type::mCapacityAllocator;
 		using base_type::internalCapacityPtr;
 		using base_type::resize;
 		using base_type::clear;
@@ -98,6 +99,7 @@ namespace eastl
 		using base_type::DoFree;
 		using base_type::DoAssign;
 		using base_type::DoAssignFromIterator;
+		using base_type::max_size;
 
 	protected:
 		aligned_buffer_type mBuffer;
@@ -124,7 +126,6 @@ namespace eastl
 		void      set_capacity(size_type n);
 		void      clear(bool freeOverflow);
 		void      reset_lose_memory();          // This is a unilateral reset to an initially empty state. No destructors are called, no deallocation occurs.
-		size_type max_size() const;             // Returns the max fixed size, which is the user-supplied nodeCount parameter.
 		bool      full() const;                 // Returns true if the fixed space has been fully allocated. Note that if overflow is enabled, the container size can be greater than nodeCount but full() could return true because the fixed space may have a recently freed slot. 
 		bool      has_overflowed() const;       // Returns true if the allocations spilled over into the overflow allocator. Meaningful only if overflow is enabled.
 		bool      can_overflow() const;         // Returns the value of the bEnableOverflow template parameter.
@@ -473,15 +474,6 @@ namespace eastl
 		mpBegin = mpEnd = (value_type*)&mBuffer.buffer[0];
 		internalCapacityPtr() = mpBegin + nodeCount;
 	}
-
-
-	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
-	inline typename fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::size_type
-	fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::max_size() const
-	{
-		return kMaxSize;
-	}
-
 
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
 	inline bool fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::full() const
