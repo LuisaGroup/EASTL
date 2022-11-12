@@ -276,6 +276,7 @@ namespace eastl
 
 		void resize(size_type n, const value_type& value);
 		void resize(size_type n);
+		void resize_uninitialized(size_type n);
 		void reserve(size_type n);
 		void set_capacity(
 		    size_type n =
@@ -841,8 +842,6 @@ namespace eastl
 	template <typename T, typename Allocator>
 	inline void vector<T, Allocator>::resize(size_type n)
 	{
-		// Alternative implementation:
-		// resize(n, value_type());
 
 		if (n > (size_type)(mpEnd - mpBegin)) // We expect that more often than not, resizes will be upsizes.
 			DoInsertValuesEnd(n - ((size_type)(mpEnd - mpBegin)));
@@ -1122,6 +1121,18 @@ namespace eastl
 		mpEnd += n;
 		return ptr;
 	}
+	template <typename T, typename Allocator>
+	inline void vector<T, Allocator>::resize_uninitialized(size_type n)
+	{
+		if (n > (size_type)(mpEnd - mpBegin)) // We expect that more often than not, resizes will be upsizes.
+			push_back_uninitialized(n - ((size_type)(mpEnd - mpBegin)));
+		else
+		{
+			eastl::destruct(mpBegin + n, mpEnd);
+			mpEnd = mpBegin + n;
+		}
+	}
+
 
 
 	template <typename T, typename Allocator>
