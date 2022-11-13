@@ -528,7 +528,7 @@ namespace eastl
 	    size_type currentCapacity)
 	{
 		// This needs to return a value of at least currentCapacity and at least 1.
-		return (currentCapacity > 0) ? (2 * currentCapacity) : 1;
+		return currentCapacity * 1.5 + 8;
 	}
 
 
