@@ -1,12 +1,16 @@
-BuildProject({
-	projectName = "eastl",
-	projectType = "shared",
-	unityBuildBatch = 64
+includes("build_proj.lua")
+ConfigProject({
+	project_name = "eastl",
+	project_kind = "shared",
+	batch_size = 64
 })
-lc_add_includedirs("include/", "packages/EABase/include/Common", {
+local add_includedirs = GetAddIncludeDirs()
+local add_defines = GetAddDefines()
+add_includedirs("include/", "packages/EABase/include/Common", {
 	public = true
 })
-lc_add_defines("EA_PRAGMA_ONCE_SUPPORTED", "EASTL_ASSERT_ENABLED=0", "EA_HAVE_CPP11_CONTAINERS", "EA_HAVE_CPP11_ATOMIC", "EA_HAVE_CPP11_CONDITION_VARIABLE",
+
+add_defines("EA_PRAGMA_ONCE_SUPPORTED", "EASTL_ASSERT_ENABLED=0", "EA_HAVE_CPP11_CONTAINERS", "EA_HAVE_CPP11_ATOMIC", "EA_HAVE_CPP11_CONDITION_VARIABLE",
 				"EA_HAVE_CPP11_MUTEX", "EA_HAVE_CPP11_THREAD", "EA_HAVE_CPP11_FUTURE", "EA_HAVE_CPP11_TYPE_TRAITS",
 				"EA_HAVE_CPP11_TUPLES", "EA_HAVE_CPP11_REGEX", "EA_HAVE_CPP11_RANDOM", "EA_HAVE_CPP11_CHRONO",
 				"EA_HAVE_CPP11_SCOPED_ALLOCATOR", "EA_HAVE_CPP11_INITIALIZER_LIST", "EA_HAVE_CPP11_SYSTEM_ERROR",
