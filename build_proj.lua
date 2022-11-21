@@ -1,27 +1,28 @@
-local get_settings = nil
-if global_settings ~= nil then
-	get_settings = function(name, default_value)
-		local v = global_settings[name]
+_get_or = nil
+if _configs ~= nil then
+	_get_or = function(name, default_value)
+		local v = _configs[name]
 		if v ~= nil then
 			return v
 		end
 		return default_value
 	end
 else
-	get_settings = function(name, default_value)
+	_get_or = function(name, default_value)
 		return default_value
 	end
 end
-function ConfigProject(config)
-	target(get_settings("project_name", config.project_name))
-	set_kind(get_settings("project_kind", config.project_kind))
-	local langs = get_settings("languages", nil)
+function _config_project(config)
+	local proj_name = _get_or("project_name", config.project_name);
+	target(proj_name)
+	set_kind(_get_or("project_kind", config.project_kind))
+	local langs = _get_or("languages", nil)
 	if langs ~= nil then
 		set_languages(langs)
 	else
 		set_languages("clagest", "cxx20")
 	end
-	local enable_unitybuild = get_settings("enable_unitybuild", true)
+	local enable_unitybuild = _get_or("enable_unitybuild", true)
 	if enable_unitybuild then
 		local unityBuildBatch = (config.batch_size)
 		if (unityBuildBatch ~= nil) and (unityBuildBatch > 1) then
@@ -33,14 +34,14 @@ function ConfigProject(config)
 			})
 		end
 	end
-	local enable_exception = get_settings("enable_exception", true) and (config.enable_exception == true)
+	local enable_exception = _get_or("enable_exception", true) and (config.enable_exception)
 	if enable_exception then
 		set_exceptions("cxx", "objc")
 	else
 		set_exceptions("no-cxx", "no-objc")
 	end
 	if is_plat("windows") then
-		local win_runtime = get_settings("win_runtime", nil)
+		local win_runtime = _get_or("win_runtime", nil)
 		if win_runtime ~= nil then
 			set_runtimes(win_runtime)
 		else
@@ -51,33 +52,31 @@ function ConfigProject(config)
 			end
 		end
 	end
-	local events = get_settings("events", nil)
+	local events = _get_or("events", nil)
 	if events ~= nil then
 		for i, k in ipairs(events) do
 			k()
 		end
 	end
 end
-function GetAddDefines()
-	return get_settings("override_add_defines", add_defines)
+function _get_add_defines()
+	return _get_or("override_add_defines", add_defines)
 end
-function GetAddIncludeDirs()
-	return get_settings("override_add_includedirs", add_includedirs)
-end
-function GetRTTIUsage()
-	return get_settings("enable_rtti", true)
+function _get_add_includedirs()
+	return _get_or("override_add_includedirs", add_includedirs)
 end
 
 --[[
-global_settings = {
+_configs = {
     languages = {},
     project_name = "",
     project_kind = "",
     enable_unitybuild = true,
 	enable_exception = false,
+	enable_rtti = false,
     override_add_defines = add_defines,
     override_add_includedirs = add_includedirs,
     win_runtime = "MD",
-    events = {function() end},
+    events = {function() end}
 }
 ]]

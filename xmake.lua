@@ -1,11 +1,11 @@
 includes("build_proj.lua")
-ConfigProject({
+_config_project({
 	project_name = "eastl",
 	project_kind = "shared",
 	batch_size = 64
 })
-local add_includedirs = GetAddIncludeDirs()
-local add_defines = GetAddDefines()
+local add_includedirs = _get_add_includedirs()
+local add_defines = _get_add_defines()
 add_includedirs("include/", "packages/EABase/include/Common", {
 	public = true
 })
@@ -20,10 +20,13 @@ add_defines("EA_PRAGMA_ONCE_SUPPORTED", "EASTL_ASSERT_ENABLED=0", "EA_HAVE_CPP11
 				"EASTL_ALLOCATOR_EXPLICIT_ENABLED", "EA_DLL", "EASTL_USER_DEFINED_ALLOCATOR", {
 					public = true
 				})
+if _get_or("enable_rtti", false) then
+	add_defines("EASTL_RTTI_ENABLED")
+end
 add_files("source/*.cpp")
 add_defines("LC_EASTL_EXPORT=1", "EASTL_PROJECT=1")
-if UseMimalloc or is_plat("windows") then
+if _get_or("use_mimalloc", true) or is_plat("windows") then
 	add_defines("EASTL_MIMALLOC_ENABLED=1")
-	add_subdirs("packages/mimalloc")
+	includes("packages/mimalloc")
 	add_deps("mimalloc")
 end
