@@ -55,7 +55,7 @@ function _config_project(config)
 	local events = _get_or("events", nil)
 	if events ~= nil then
 		for i, k in ipairs(events) do
-			k()
+			k(config)
 		end
 	end
 end
