@@ -272,7 +272,7 @@ namespace eastl
 		size_type size() const EA_NOEXCEPT;
 		size_type size_bytes() const EA_NOEXCEPT;
 		size_type capacity() const EA_NOEXCEPT;
-		constexpr size_type max_size() const EA_NOEXCEPT { return std::numeric_limits<size_type>::max();}
+		constexpr size_type max_size() const EA_NOEXCEPT { return std::numeric_limits<size_type>::max(); }
 
 		void resize(size_type n, const value_type& value);
 		void resize(size_type n);
@@ -302,8 +302,8 @@ namespace eastl
 
 		void push_back(const value_type& value);
 		reference push_back();
-		void* push_back_uninitialized(); 
-		void* push_back_uninitialized(size_t count); 
+		void* push_back_uninitialized();
+		void* push_back_uninitialized(size_t count);
 		void push_back(value_type&& value);
 		T pop_back();
 
@@ -311,7 +311,8 @@ namespace eastl
 		iterator emplace(const_iterator position, Args&&... args);
 
 		template <class... Args>
-		requires(std::is_constructible_v<T, Args&&...>) reference emplace_back(Args&&... args);
+		    requires(std::is_constructible_v<T, Args && ...>)
+		reference emplace_back(Args&&... args);
 
 		iterator insert(const_iterator position, const value_type& value);
 		iterator insert(const_iterator position, size_type n, const value_type& value);
@@ -1078,8 +1079,9 @@ namespace eastl
 	{
 		if (mpEnd == internalCapacityPtr())
 		{
-			const size_type newSize = (size_type)(mpEnd - mpBegin) + 1;
-			reserve(newSize);
+			const size_type nPrevSize = size_type(mpEnd - mpBegin);
+			const size_type nNewSize = GetNewCapacity(nPrevSize);
+			DoGrow(nNewSize);
 		}
 
 		return mpEnd++;
@@ -1134,7 +1136,6 @@ namespace eastl
 	}
 
 
-
 	template <typename T, typename Allocator>
 	inline T vector<T, Allocator>::pop_back()
 	{
@@ -1173,8 +1174,8 @@ namespace eastl
 
 	template <typename T, typename Allocator>
 	template <class... Args>
-	requires(std::is_constructible_v<T, Args&&...>) inline
-	    typename vector<T, Allocator>::reference vector<T, Allocator>::emplace_back(Args&&... args)
+	    requires(std::is_constructible_v<T, Args && ...>)
+	inline typename vector<T, Allocator>::reference vector<T, Allocator>::emplace_back(Args&&... args)
 	{
 		if (mpEnd < internalCapacityPtr())
 		{
@@ -2163,26 +2164,6 @@ namespace eastl
 	inline void swap(vector<T, Allocator>& a, vector<T, Allocator>& b) EA_NOEXCEPT_IF(EA_NOEXCEPT_EXPR(a.swap(b)))
 	{
 		a.swap(b);
-	}
-
-
-	///////////////////////////////////////////////////////////////////////
-	// erase / erase_if
-	//
-	// https://en.cppreference.com/w/cpp/container/vector/erase2
-	///////////////////////////////////////////////////////////////////////
-	template <class T, class Allocator, class U>
-	void erase(vector<T, Allocator>& c, const U& value)
-	{
-		// Erases all elements that compare equal to value from the container.
-		c.erase(eastl::remove(c.begin(), c.end(), value), c.end());
-	}
-
-	template <class T, class Allocator, class Predicate>
-	void erase_if(vector<T, Allocator>& c, Predicate predicate)
-	{
-		// Erases all elements that satisfy the predicate pred from the container.
-		c.erase(eastl::remove_if(c.begin(), c.end(), predicate), c.end());
 	}
 } // namespace eastl
 

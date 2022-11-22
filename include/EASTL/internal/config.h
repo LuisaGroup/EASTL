@@ -87,8 +87,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef EASTL_VERSION
-	#define EASTL_VERSION   "3.19.03"
-	#define EASTL_VERSION_N  31903
+	#define EASTL_VERSION   "3.19.05"
+	#define EASTL_VERSION_N  31905
 #endif
 
 
@@ -824,6 +824,21 @@ void EASTL_DEBUG_BREAK(); // User must define this externally.
 #endif
 #endif
 
+///////////////////////////////////////////////////////////////////////////////
+// EASTL_GCC_STYLE_INT128_SUPPORTED
+//
+// Defined as 0 or 1.
+// Specifies whether __int128_t/__uint128_t are defined.
+//
+#ifndef EASTL_GCC_STYLE_INT128_SUPPORTED
+#if EASTL_INT128_SUPPORTED && (defined(EA_COMPILER_GNUC) || defined(__clang__))
+#define EASTL_GCC_STYLE_INT128_SUPPORTED 1
+#else
+#define EASTL_GCC_STYLE_INT128_SUPPORTED 0
+#endif
+#endif
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // EASTL_DEFAULT_ALLOCATOR_ALIGNED_ALLOCATIONS_SUPPORTED
@@ -850,11 +865,13 @@ void EASTL_DEBUG_BREAK(); // User must define this externally.
 //
 // Defined as 0 or 1.
 // Specifies whether eastl_int128_t/eastl_uint128_t have been typedef'd yet.
+// NB: these types are not considered fundamental, arithmetic or integral when using the EAStdC implementation.
+// this changes the compiler type traits defined in type_traits.h.
+// eg. is_signed<eastl_int128_t>::value may be false, because it is not arithmetic.
 //
 #ifndef EASTL_INT128_DEFINED
 #if EASTL_INT128_SUPPORTED
 #define EASTL_INT128_DEFINED 1
-
 #if defined(__SIZEOF_INT128__) || defined(EA_COMPILER_GNUC) || defined(__clang__)
 typedef __int128_t eastl_int128_t;
 typedef __uint128_t eastl_uint128_t;
@@ -864,7 +881,6 @@ typedef uint128_t eastl_uint128_t; // though they are currently within the EA::S
 #endif
 #endif
 #endif
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // EASTL_BITSET_WORD_TYPE_DEFAULT / EASTL_BITSET_WORD_SIZE_DEFAULT
