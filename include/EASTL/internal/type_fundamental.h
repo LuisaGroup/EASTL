@@ -130,10 +130,6 @@ namespace eastl
 
 	template <> struct is_integral_helper<bool>               : public true_type{};
 	template <> struct is_integral_helper<char>               : public true_type{};
-
-	#if defined(EA_CHAR8_UNIQUE) && EA_CHAR8_UNIQUE
-		template <> struct is_integral_helper<char8_t>        : public true_type{};
-	#endif
 	#if defined(EA_CHAR16_NATIVE) && EA_CHAR16_NATIVE
 		template <> struct is_integral_helper<char16_t>       : public true_type{};
 	#endif
@@ -143,7 +139,7 @@ namespace eastl
 	#ifndef EA_WCHAR_T_NON_NATIVE // If wchar_t is a native type instead of simply a define to an existing type which is already handled above...
 		template <> struct is_integral_helper<wchar_t>        : public true_type{};
 	#endif
-	#if EASTL_GCC_STYLE_INT128_SUPPORTED
+	#if EASTL_INT128_SUPPORTED && (defined(EA_COMPILER_GNUC) || defined(__clang__))
 		template <> struct is_integral_helper<__int128_t>     : public true_type{};
 		template <> struct is_integral_helper<__uint128_t>    : public true_type{};
 	#endif
