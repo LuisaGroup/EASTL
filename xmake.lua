@@ -2,7 +2,8 @@ includes("build_proj.lua")
 _config_project({
 	project_name = "eastl",
 	project_kind = "shared",
-	batch_size = 64
+	batch_size = 64,
+	no_rtti = true
 })
 local add_includedirs = _get_add_includedirs()
 local add_defines = _get_add_defines()
