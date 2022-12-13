@@ -91,7 +91,7 @@ add_definitions(-DEASTL_OPENSOURCE=1)
 #-------------------------------------------------------------------------------------------
 # Include dirs
 #-------------------------------------------------------------------------------------------
-target_include_directories(EASTL PUBLIC include)
+target_include_directories(EASTL PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 #-------------------------------------------------------------------------------------------
 # Dependencies
