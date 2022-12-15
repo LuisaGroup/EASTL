@@ -121,8 +121,8 @@
 // EABase versions prior to 2.00.40 that don't yet define it themselves.
 //
 #if !defined(EA_NOEXCEPT)
-#define EA_NOEXCEPT
-#define EA_NOEXCEPT_IF(predicate)
+#define EA_NOEXCEPT noexcept
+#define EA_NOEXCEPT_IF(predicate) noexcept
 #define EA_NOEXCEPT_EXPR(expression) false
 #endif
 
