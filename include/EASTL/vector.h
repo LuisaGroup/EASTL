@@ -236,14 +236,9 @@ namespace eastl
 
 		this_type& operator=(const this_type& x);
 		this_type& operator=(std::initializer_list<value_type> ilist);
-		this_type& operator=(
-		    this_type&& x); // TODO(c++17):
-		                    // noexcept(allocator_traits<Allocator>::propagate_on_container_move_assignment::value
-		                    // || allocator_traits<Allocator>::is_always_equal::value)
+		this_type& operator=(this_type&& x) EA_NOEXCEPT;
 
-		void swap(this_type& x); // TODO(c++17):
-		                         // noexcept(allocator_traits<Allocator>::propagate_on_container_move_assignment::value
-		                         // || allocator_traits<Allocator>::is_always_equal::value)
+		void swap(this_type& x) EA_NOEXCEPT;
 
 		void assign(size_type n, const value_type& value);
 
@@ -305,7 +300,7 @@ namespace eastl
 		void* push_back_uninitialized(); 
 		void* push_back_uninitialized(size_t count); 
 		void push_back(value_type&& value);
-		T pop_back();
+		void pop_back();
 
 		template <class... Args>
 		iterator emplace(const_iterator position, Args&&... args);
@@ -675,7 +670,7 @@ namespace eastl
 
 
 	template <typename T, typename Allocator>
-	typename vector<T, Allocator>::this_type& vector<T, Allocator>::operator=(this_type&& x)
+	typename vector<T, Allocator>::this_type& vector<T, Allocator>::operator=(this_type&& x) EA_NOEXCEPT
 	{
 		if (this != &x)
 		{
@@ -1136,20 +1131,14 @@ namespace eastl
 
 
 	template <typename T, typename Allocator>
-	inline T vector<T, Allocator>::pop_back()
+	void vector<T, Allocator>::pop_back()
 	{
 #if EASTL_ASSERT_ENABLED
 		if (EASTL_UNLIKELY(mpEnd <= mpBegin))
 			EASTL_FAIL_MSG("vector::pop_back -- empty vector");
 #endif
-		struct DtorLast
-		{
-			T* ptr;
-			~DtorLast() { ptr->~T(); }
-		};
 		--mpEnd;
-		DtorLast dtor{mpEnd};
-		return std::move(*mpEnd);
+		mpEnd->~value_type();
 	}
 
 
@@ -1423,7 +1412,7 @@ namespace eastl
 	// is false by default). EASTL doesn't have allocator_traits and so this doesn't directly apply,
 	// but EASTL has the effective behavior of propagate_on_container_swap = false for all allocators.
 	template <typename T, typename Allocator>
-	inline void vector<T, Allocator>::swap(this_type& x)
+	inline void vector<T, Allocator>::swap(this_type& x) EA_NOEXCEPT
 	{
 #if defined(EASTL_VECTOR_LEGACY_SWAP_BEHAVIOUR_REQUIRES_COPY_CTOR) && \
     EASTL_VECTOR_LEGACY_SWAP_BEHAVIOUR_REQUIRES_COPY_CTOR
