@@ -671,8 +671,6 @@ namespace eastl
 		variant_storage_t mStorage;
 
 	public:
-		void *place_ptr() noexcept{return &mStorage.mBuffer;}
-		void const *place_ptr() const noexcept{return &mStorage.mBuffer;}
 		///////////////////////////////////////////////////////////////////////////
 		// 20.7.2.1, constructors
 		//
