@@ -393,14 +393,14 @@ namespace eastl
 		T get_as()
 		{
 			static_assert(eastl::is_pointer_v<T>, "T must be a pointer type");
-			return reinterpret_cast<T>(&mBuffer);
+			return std::launder(reinterpret_cast<T>(&mBuffer));
 		}
 
 		template<typename T>
 		const T get_as() const
 		{
 			static_assert(eastl::is_pointer_v<T>, "T must be a pointer type");
-			return reinterpret_cast<const T>(reinterpret_cast<uintptr_t>(&mBuffer));
+			return std::launder(reinterpret_cast<const T>(reinterpret_cast<uintptr_t>(&mBuffer)));
 		}
 
 		void destroy()
@@ -460,14 +460,14 @@ namespace eastl
 		T get_as()
 		{
 			static_assert(eastl::is_pointer_v<T>, "T must be a pointer type");
-			return reinterpret_cast<T>(&mBuffer);
+			return std::launder(reinterpret_cast<T>(&mBuffer));
 		}
 
 		template<typename T>
 		const T get_as() const
 		{
 			static_assert(eastl::is_pointer_v<T>, "T must be a pointer type");
-			return reinterpret_cast<const T>(reinterpret_cast<uintptr_t>(&mBuffer));
+			return std::launder(reinterpret_cast<const T>(reinterpret_cast<uintptr_t>(&mBuffer)));
 		}
 
 		void destroy() {}
@@ -826,7 +826,7 @@ namespace eastl
 
 			mStorage.template set_as<T>(eastl::forward<Args>(args)...);
 			mIndex = static_cast<variant_index_t>(I);
-			return *reinterpret_cast<T*>(&mStorage.mBuffer);
+			return *std::launder(reinterpret_cast<T*>(&mStorage.mBuffer));
 		}
 
 		// First, destroys the currently contained value (if any). Then direct-initializes the contained value as if
@@ -853,7 +853,7 @@ namespace eastl
 
 			mStorage.template set_as<T>(il, eastl::forward<Args>(args)...);
 			mIndex = static_cast<variant_index_t>(I);
-			return *reinterpret_cast<T*>(&mStorage.mBuffer);
+			return *std::launder(reinterpret_cast<T*>(&mStorage.mBuffer));
 		}
 
 
