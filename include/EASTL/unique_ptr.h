@@ -555,6 +555,7 @@ namespace eastl
 	} // namespace Internal
 
 	template <typename T, typename... Args>
+		requires(std::is_constructible_v<T, Args&&...>)
 	inline typename Internal::unique_type<T>::unique_type_single make_unique(Args&&... args)
 	{
 		auto ptr = new (eastl::GetDefaultAllocator()->allocate(sizeof(T))) T(eastl::forward<Args>(args)...);

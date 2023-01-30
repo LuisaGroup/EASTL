@@ -1202,6 +1202,7 @@ namespace eastl
 	}
 
 	template <typename T, typename Allocator, typename... Args>
+		requires(std::is_constructible_v<T, Args&&...>)
 	shared_ptr<T> allocate_shared(const Allocator& allocator, Args&&... args)
 	{
 		typedef ref_count_sp_t_inst<T, Allocator> ref_count_type;
@@ -1216,6 +1217,7 @@ namespace eastl
 	}
 
 	template <typename T, typename... Args>
+		requires(std::is_constructible_v<T, Args&&...>)
 	shared_ptr<T> make_shared(Args&&... args)
 	{
 		// allocate with the default allocator.
