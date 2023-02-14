@@ -673,11 +673,11 @@ namespace eastl
 	public:
 		template <typename T>
 		T get_as() noexcept{
-			return mStorage.get_as<T>();
+			return mStorage.template get_as<T>();
 		}
 		template <typename T>
 		T get_as() const noexcept{
-			return mStorage.get_as<T>();
+			return mStorage.template get_as<T>();
 		}
 		///////////////////////////////////////////////////////////////////////////
 		// 20.7.2.1, constructors
