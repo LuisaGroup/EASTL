@@ -23,7 +23,7 @@ namespace eastl
 #ifndef EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE
 // #define EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE (4 * sizeof(void*))
 // Transform to 8 pointer for better performance
-#define EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE (8 * sizeof(void*))
+#define EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE (6 * sizeof(void*))
 #endif
 
 	static_assert(EASTL_FUNCTION_DEFAULT_CAPTURE_SSO_SIZE >= sizeof(void*),
