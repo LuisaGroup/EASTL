@@ -26,7 +26,7 @@ if _get_or("enable_rtti", false) then
 end
 add_files("source/*.cpp")
 add_defines("LC_EASTL_EXPORT=1", "EASTL_PROJECT=1")
-if _get_or("use_mimalloc", true) then
+if _get_or("enable_mimalloc", true) then
 	add_defines("EASTL_MIMALLOC_ENABLED=1")
 	includes("packages/mimalloc")
 	add_deps("mimalloc")
