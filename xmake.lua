@@ -1,12 +1,10 @@
-includes("build_proj.lua")
+includes("packages/mimalloc/build_proj.lua")
 _config_project({
 	project_name = "eastl",
 	project_kind = "shared",
 	batch_size = 64,
 	no_rtti = true
 })
-local add_includedirs = _get_add_includedirs()
-local add_defines = _get_add_defines()
 add_includedirs("include/", "packages/EABase/include/Common", {
 	public = true
 })
