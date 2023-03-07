@@ -1,6 +1,6 @@
 includes("packages/mimalloc/build_proj.lua")
+target("eastl")
 _config_project({
-	project_name = "eastl",
 	project_kind = "shared",
 	batch_size = 64,
 	no_rtti = true
@@ -19,12 +19,16 @@ add_defines("EA_PRAGMA_ONCE_SUPPORTED", "EASTL_ASSERT_ENABLED=0", "EA_HAVE_CPP11
 				"EASTL_INLINE_NAMESPACES_ENABLED", "EASTL_ALLOCATOR_EXPLICIT_ENABLED", "EA_DLL", "EASTL_USER_DEFINED_ALLOCATOR", {
 					public = true
 				})
-if _get_or("enable_rtti", false) then
-	add_defines("EASTL_RTTI_ENABLED")
-end
 add_files("source/*.cpp")
 add_defines("LC_EASTL_EXPORT=1", "EASTL_PROJECT=1")
-if _get_or("enable_mimalloc", true) then
+local enable_mimalloc = true;
+if type(_configs) == "table" then
+	if _configs["enable_eastl_rtti"] then
+		add_defines("EASTL_RTTI_ENABLED")
+	end
+	enable_mimalloc = _configs["enable_mimalloc"]
+end
+if enable_mimalloc then
 	add_defines("EASTL_MIMALLOC_ENABLED=1")
 	includes("packages/mimalloc")
 	add_deps("mimalloc")
