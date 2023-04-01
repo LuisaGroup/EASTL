@@ -71,9 +71,7 @@ if (WIN32 OR EASTL_ENABLE_MIMALLOC)
     target_link_libraries(EASTL PRIVATE mimalloc-static)
 endif ()
 
-set_target_properties(EASTL PROPERTIES
-        UNITY_BUILD ON
-        WINDOWS_EXPORT_ALL_SYMBOLS ON)
+set_target_properties(EASTL PROPERTIES UNITY_BUILD ON)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
         CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15.0)
