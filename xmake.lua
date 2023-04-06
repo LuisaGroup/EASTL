@@ -33,3 +33,4 @@ if enable_mimalloc then
 	includes("packages/mimalloc")
 	add_deps("mimalloc")
 end
+target_end()
