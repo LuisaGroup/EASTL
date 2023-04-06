@@ -87,8 +87,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef EASTL_VERSION
-	#define EASTL_VERSION   "3.19.03"
-	#define EASTL_VERSION_N  31903
+#define EASTL_VERSION "3.20.02"
+#define EASTL_VERSION_N 32002
 #endif
 
 
@@ -105,11 +105,11 @@
 // don't support linking STL libraries. Perhaps we can figure out what linker arguments
 // are needed for an app so we can manually specify them and then re-enable this code.
 //
-//#include <android/api-level.h>
+// #include <android/api-level.h>
 //
-//#if (__ANDROID_API__ < 9) // Earlier versions of Android provide no std C++ STL implementation.
+// #if (__ANDROID_API__ < 9) // Earlier versions of Android provide no std C++ STL implementation.
 #define EA_COMPILER_NO_STANDARD_CPP_LIBRARY 1
-//#endif
+// #endif
 #endif
 #endif
 
@@ -120,11 +120,10 @@
 // Defined as a macro. Provided here for backward compatibility with older
 // EABase versions prior to 2.00.40 that don't yet define it themselves.
 //
-#if !defined(EA_NOEXCEPT)
+
 #define EA_NOEXCEPT noexcept
-#define EA_NOEXCEPT_IF(predicate) noexcept
-#define EA_NOEXCEPT_EXPR(expression) false
-#endif
+#define EA_NOEXCEPT_IF(predicate) noexcept(predicate)
+#define EA_NOEXCEPT_EXPR(expression) noexcept(expression)
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -270,8 +269,9 @@ namespace eastl
 //    EASTL_API void SomeFunction();        // Export SomeFunction in a DLL build.
 //
 //
-//#if defined(EA_DLL) && !defined(EASTL_DLL)
-//#endif
+#if defined(EA_DLL) && !defined(EASTL_DLL)
+#define EASTL_DLL 1
+#endif
 
 #ifndef EASTL_API // If the build file hasn't already defined this to be dllexport...
 #if EASTL_DLL
@@ -661,7 +661,7 @@ void EASTL_DEBUG_BREAK(); // User must define this externally.
 ///////////////////////////////////////////////////////////////////////////////
 // EASTL_CRASH
 //
-// Executes an invalid memory write, which should result in an exception 
+// Executes an invalid memory write, which should result in an exception
 // on most platforms.
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -817,10 +817,25 @@ void EASTL_DEBUG_BREAK(); // User must define this externally.
 // Defined as 0 or 1.
 //
 #ifndef EASTL_INT128_SUPPORTED
-#if defined(__SIZEOF_INT128__) || (defined(EA_COMPILER_INTMAX_SIZE) && (EA_COMPILER_INTMAX_SIZE >= 16))
+#if defined(EA_COMPILER_INTMAX_SIZE) && (EA_COMPILER_INTMAX_SIZE >= 16)
 #define EASTL_INT128_SUPPORTED 1
 #else
 #define EASTL_INT128_SUPPORTED 0
+#endif
+#endif
+
+
+///////////////////////////////////////////////////////////////////////////////
+// EASTL_GCC_STYLE_INT128_SUPPORTED
+//
+// Defined as 0 or 1.
+// Specifies whether __int128_t/__uint128_t are defined.
+//
+#ifndef EASTL_GCC_STYLE_INT128_SUPPORTED
+#if EASTL_INT128_SUPPORTED && (defined(EA_COMPILER_GNUC) || defined(__clang__))
+#define EASTL_GCC_STYLE_INT128_SUPPORTED 1
+#else
+#define EASTL_GCC_STYLE_INT128_SUPPORTED 0
 #endif
 #endif
 
@@ -850,12 +865,15 @@ void EASTL_DEBUG_BREAK(); // User must define this externally.
 //
 // Defined as 0 or 1.
 // Specifies whether eastl_int128_t/eastl_uint128_t have been typedef'd yet.
+// NB: these types are not considered fundamental, arithmetic or integral when using the EAStdC implementation.
+// this changes the compiler type traits defined in type_traits.h.
+// eg. is_signed<eastl_int128_t>::value may be false, because it is not arithmetic.
 //
 #ifndef EASTL_INT128_DEFINED
 #if EASTL_INT128_SUPPORTED
 #define EASTL_INT128_DEFINED 1
 
-#if defined(__SIZEOF_INT128__) || defined(EA_COMPILER_GNUC) || defined(__clang__)
+#if EASTL_GCC_STYLE_INT128_SUPPORTED
 typedef __int128_t eastl_int128_t;
 typedef __uint128_t eastl_uint128_t;
 #else
@@ -1540,7 +1558,7 @@ EASTL_STD_TYPE_TRAITS_AVAILABLE 0 #endif #endif
 
 typedef EASTL_SIZE_T eastl_size_t; // Same concept as std::size_t.
 typedef EASTL_SSIZE_T
-    eastl_ssize_t; // Signed version of eastl_size_t. Concept is similar to Posix's ssize_t.
+    eastl_ssize_t;                 // Signed version of eastl_size_t. Concept is similar to Posix's ssize_t.
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1746,17 +1764,6 @@ typedef EASTL_SSIZE_T
 #ifndef EASTL_USER_LITERALS_ENABLED
 #if defined(EA_COMPILER_CPP14_ENABLED)
 #define EASTL_USER_LITERALS_ENABLED 1
-
-// Disabling the Clang/GCC/MSVC warning about using user defined literals without a leading '_' as they are
-// reserved for standard libary usage.
-EA_DISABLE_CLANG_WARNING(-Wuser - defined - literals)
-EA_DISABLE_CLANG_WARNING(-Wreserved - user - defined - literal)
-EA_DISABLE_GCC_WARNING(-Wliteral - suffix)
-#ifdef _MSC_VER
-#pragma warning(disable : 4455) // disable warning C4455: literal suffix identifiers that do not start with an
-                                // underscore are reserved
-#endif
-
 #else
 #define EASTL_USER_LITERALS_ENABLED 0
 #endif
@@ -1806,15 +1813,46 @@ EA_DISABLE_GCC_WARNING(-Wliteral - suffix)
 
 /// EASTL_HAS_UNIQUE_OBJECT_REPRESENTATIONS_AVAILABLE
 #if defined(__clang__)
+                   // NB: !__is_identifier() is correct: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66970#c11
 #if !__is_identifier(__has_unique_object_representations)
 #define EASTL_HAS_UNIQUE_OBJECT_REPRESENTATIONS_AVAILABLE 1
 #else
 #define EASTL_HAS_UNIQUE_OBJECT_REPRESENTATIONS_AVAILABLE 0
 #endif
-#elif defined(_MSC_VER) && (_MSC_VER >= 1913) // VS2017+
+#elif defined(_MSC_VER) && (_MSC_VER >= 1913) // VS2017 15.6+
 #define EASTL_HAS_UNIQUE_OBJECT_REPRESENTATIONS_AVAILABLE 1
 #else
 #define EASTL_HAS_UNIQUE_OBJECT_REPRESENTATIONS_AVAILABLE 0
+#endif
+
+#if defined(__clang__)
+                   // NB: !__is_identifier() is correct: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66970#c11
+#if !__is_identifier(__is_final)
+#define EASTL_IS_FINAL_AVAILABLE 1
+#else
+#define EASTL_IS_FINAL_AVAILABLE 0
+#endif
+#elif defined(_MSC_VER) && (_MSC_VER >= 1914) // VS2017 15.7+
+#define EASTL_IS_FINAL_AVAILABLE 1
+#elif defined(EA_COMPILER_GNUC)
+#define EASTL_IS_FINAL_AVAILABLE 1
+#else
+#define EASTL_IS_FINAL_AVAILABLE 0
+#endif
+
+#if defined(__clang__)
+                   // NB: !__is_identifier() is correct: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66970#c11
+#if !__is_identifier(__is_aggregate)
+#define EASTL_IS_AGGREGATE_AVAILABLE 1
+#else
+#define EASTL_IS_AGGREGATE_AVAILABLE 0
+#endif
+#elif defined(_MSC_VER) && (_MSC_VER >= 1915) // VS2017 15.8+
+#define EASTL_IS_AGGREGATE_AVAILABLE 1
+#elif defined(EA_COMPILER_GNUC)
+#define EASTL_IS_AGGREGATE_AVAILABLE 1
+#else
+#define EASTL_IS_AGGREGATE_AVAILABLE 0
 #endif
 
 
