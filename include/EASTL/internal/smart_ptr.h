@@ -212,7 +212,19 @@ namespace eastl
 		{
 		}
 
-		void operator()(T* p) const EA_NOEXCEPT { delete[] p; }
+		void operator()(T* p) const EA_NOEXCEPT { 
+			auto header_size = std::max<size_t>(alignof(T), sizeof(size_t));
+			auto header_ptr = reinterpret_cast<size_t *>(reinterpret_cast<size_t>(p) - header_size);
+			auto ele_size = *header_ptr;
+			auto alloc_size = header_size * ele_size * sizeof(T);
+			if constexpr(!std::is_trivially_constructible_v<T>){
+				auto end = p + ele_size;
+				for(auto ptr = p; ptr != end; ++ptr){
+					ptr->~T();
+				}
+			}
+			eastl::GetDefaultAllocator()->deallocate(header_ptr, alloc_size);
+		}
 	};
 
 

@@ -377,8 +377,7 @@ namespace eastl
 		              Internal::is_array_cv_convertible<P, pointer>::value>> // Pointers to types derived from T are
 		                                                                     // rejected by the constructors, and by
 		                                                                     // reset.
-		                                                                     explicit unique_ptr(P pArray) EA_NOEXCEPT
-		    : mPair(pArray)
+		explicit unique_ptr(P pArray) EA_NOEXCEPT : mPair(pArray)
 		{
 			static_assert(!eastl::is_pointer<deleter_type>::value,
 			              "unique_ptr deleter default-constructed with null pointer. Use a different constructor or "
@@ -541,16 +540,29 @@ namespace eastl
 	}
 
 	template <typename T>
-	inline typename eastl::enable_if<eastl::is_unbounded_array<T>::value, eastl::unique_ptr<T>>::type make_unique(size_t n)
+	inline typename eastl::enable_if<eastl::is_unbounded_array<T>::value, eastl::unique_ptr<T>>::type make_unique(
+	    size_t n)
 	{
 		typedef typename eastl::remove_extent<T>::type TBase;
-		return unique_ptr<T>(new TBase[n]);
+		size_t header_size = std::max<size_t>(sizeof(size_t), alignof(TBase));
+		size_t alloc_size = header_size + n * sizeof(TBase);
+		auto header_ptr = reinterpret_cast<size_t*>(eastl::GetDefaultAllocator()->allocate(alloc_size));
+		*header_ptr = n;
+		auto ptr = reinterpret_cast<TBase*>(reinterpret_cast<size_t>(header_ptr) + header_size);
+		if constexpr (!std::is_trivially_constructible_v<TBase>)
+		{
+			auto end = ptr + n;
+			for (auto i = ptr; i != end; ++i)
+			{
+				new (i) TBase{};
+			}
+		}
+		return unique_ptr<T>(ptr);
 	}
 
 	// It's not possible to create a unique_ptr for arrays of a known bound (e.g. int[4] as opposed to int[]).
 	template <typename T, typename... Args>
-	typename eastl::enable_if<eastl::is_bounded_array<T>::value>::type
-	make_unique(Args&&...) = delete;
+	typename eastl::enable_if<eastl::is_bounded_array<T>::value>::type make_unique(Args&&...) = delete;
 
 
 	/// hash specialization for unique_ptr.
@@ -582,20 +594,22 @@ namespace eastl
 	{
 		return (a.get() == b.get());
 	}
-	#if defined(EA_COMPILER_HAS_THREE_WAY_COMPARISON)
+#if defined(EA_COMPILER_HAS_THREE_WAY_COMPARISON)
 	template <typename T1, typename D1, typename T2, typename D2>
-	requires std::three_way_comparable_with<typename unique_ptr<T1, D1>::pointer, typename unique_ptr<T2, D2>::pointer>
-	inline std::compare_three_way_result_t<typename unique_ptr<T1, D1>::pointer, typename unique_ptr<T2, D2>::pointer> operator<=>(const unique_ptr<T1, D1>& a, const unique_ptr<T2, D2>& b)
+	    requires std::three_way_comparable_with<typename unique_ptr<T1, D1>::pointer,
+	                                            typename unique_ptr<T2, D2>::pointer>
+	inline std::compare_three_way_result_t<typename unique_ptr<T1, D1>::pointer, typename unique_ptr<T2, D2>::pointer>
+	operator<=>(const unique_ptr<T1, D1>& a, const unique_ptr<T2, D2>& b)
 	{
 		return a.get() <=> b.get();
 	}
-	#else
+#else
 	template <typename T1, typename D1, typename T2, typename D2>
 	inline bool operator!=(const unique_ptr<T1, D1>& a, const unique_ptr<T2, D2>& b)
 	{
 		return !(a.get() == b.get());
 	}
-	#endif
+#endif
 
 	/// Returns which unique_ptr is 'less' than the other. Useful when storing
 	/// sorted containers of unique_ptr objects.
@@ -646,8 +660,10 @@ namespace eastl
 
 #if defined(EA_COMPILER_HAS_THREE_WAY_COMPARISON)
 	template <typename T, typename D>
-	requires std::three_way_comparable_with<typename unique_ptr<T, D>::pointer, std::nullptr_t>
-	inline std::compare_three_way_result_t<typename unique_ptr<T, D>::pointer, std::nullptr_t> operator<=>(const unique_ptr<T, D>& a, std::nullptr_t)
+	    requires std::three_way_comparable_with<typename unique_ptr<T, D>::pointer, std::nullptr_t>
+	inline std::compare_three_way_result_t<typename unique_ptr<T, D>::pointer, std::nullptr_t> operator<=>(
+	    const unique_ptr<T, D>& a,
+	    std::nullptr_t)
 	{
 		return a.get() <=> nullptr;
 	}
