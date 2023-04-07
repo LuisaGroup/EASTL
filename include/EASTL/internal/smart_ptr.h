@@ -213,7 +213,7 @@ namespace eastl
 		}
 
 		void operator()(T* p) const EA_NOEXCEPT { 
-			auto header_size = std::max<size_t>(alignof(T), sizeof(size_t));
+			auto header_size = max<size_t>(alignof(T), sizeof(size_t));
 			auto header_ptr = reinterpret_cast<size_t *>(reinterpret_cast<size_t>(p) - header_size);
 			auto ele_size = *header_ptr;
 			auto alloc_size = header_size * ele_size * sizeof(T);

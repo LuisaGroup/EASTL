@@ -544,7 +544,7 @@ namespace eastl
 	    size_t n)
 	{
 		typedef typename eastl::remove_extent<T>::type TBase;
-		size_t header_size = std::max<size_t>(sizeof(size_t), alignof(TBase));
+		size_t header_size = max<size_t>(sizeof(size_t), alignof(TBase));
 		size_t alloc_size = header_size + n * sizeof(TBase);
 		auto header_ptr = reinterpret_cast<size_t*>(eastl::GetDefaultAllocator()->allocate(alloc_size));
 		*header_ptr = n;
