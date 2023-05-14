@@ -187,6 +187,7 @@ namespace eastl
 				Internal::atomic_increment(&mWeakRefCount);
 				return this;
 			}
+			std::this_thread::yield();
 		}
 
 		return nullptr;
