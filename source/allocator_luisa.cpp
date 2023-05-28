@@ -7,7 +7,6 @@
 
 #ifdef EASTL_MIMALLOC_ENABLED
 #include <mimalloc.h>
-//#include <Windows.h>
 #else
 #include <cstdlib>
 #endif
@@ -16,33 +15,16 @@ namespace eastl
 
 	namespace detail
 	{
-		/*
 #ifdef EASTL_MIMALLOC_ENABLED
-		class MimallocAllocatorImpl
+		class MimallocSetOptions
 		{
 		public:
-			void* (*mallocFunc)(size_t) = nullptr;
-			void (*freeFunc)(void*) = nullptr;
-			void* (*reallocFunc)(void*, size_t) = nullptr;
-			void* (*alignedAllocFunc)(size_t, size_t) = nullptr;
-			HMODULE dll;
-			MimallocAllocatorImpl()
-			{
-				dll = LoadLibraryA("mimalloc.dll");
-
-
-				// 	dll->GetDLLFunc(mallocFunc, "mi_malloc");
-				// 	dll->GetDLLFunc(freeFunc, "mi_free");
-				// 	dll->GetDLLFunc(reallocFunc, "mi_realloc");
-				mallocFunc = (decltype(mallocFunc))GetProcAddress(dll, "mi_malloc");
-				freeFunc = (decltype(freeFunc))GetProcAddress(dll, "mi_free");
-				reallocFunc = (decltype(reallocFunc))GetProcAddress(dll, "mi_realloc");
-				alignedAllocFunc = (decltype(alignedAllocFunc))GetProcAddress(dll, "mi_aligned_alloc");
+			MimallocSetOptions() {
+				mi_option_set(mi_option_allow_large_os_pages, 1);
 			}
-			~MimallocAllocatorImpl() { FreeLibrary(dll); }
 		};
-		static MimallocAllocatorImpl mimallocFuncPtr;
-#endif*/
+		static MimallocSetOptions _mimalloc_set_options;
+#endif
 		inline static allocator*& GetDefaultAllocatorRef() noexcept
 		{
 			static allocator a;
