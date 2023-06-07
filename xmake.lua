@@ -25,6 +25,8 @@ on_load(function(target)
 					})
 	target:add("defines", "LC_EASTL_EXPORT=1", "EASTL_PROJECT=1")
 end)
+add_headerfiles("include/**.h")
+add_headerfiles("packages/EABase/include/Common/**.h")
 add_files("source/*.cpp")
 if enable_mimalloc then
 	add_defines("EASTL_MIMALLOC_ENABLED=1")
