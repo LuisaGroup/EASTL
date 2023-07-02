@@ -86,14 +86,14 @@ namespace eastl
 
 		EA_DISABLE_VC_WARNING(4647)
 		template <typename T> // We check for has_trivial_constructor only because the VC++ is_pod does. Is it due to some compiler bug?
-		struct is_pod : public eastl::integral_constant<bool, (std::is_trivially_constructible_v<T> && std::is_pod_v<T> && !eastl::is_hat_type<T>::value) || eastl::is_void<T>::value || eastl::is_scalar<T>::value>{};
+		struct is_pod : public eastl::integral_constant<bool, (std::is_trivially_constructible_v<T> && __is_pod(T) && !eastl::is_hat_type<T>::value) || eastl::is_void<T>::value || eastl::is_scalar<T>::value>{};
 		EA_RESTORE_VC_WARNING()
 	
 	#elif EASTL_COMPILER_INTRINSIC_TYPE_TRAITS_AVAILABLE && (defined(EA_COMPILER_GNUC) || (defined(__clang__) && EA_COMPILER_HAS_FEATURE(is_pod)))
 		#define EASTL_TYPE_TRAIT_is_pod_CONFORMANCE 1    // is_pod is conforming.
 
 		template <typename T> 
-		struct is_pod : public eastl::integral_constant<bool, std::is_pod_v<T> || eastl::is_void<T>::value || eastl::is_scalar<T>::value>{};
+		struct is_pod : public eastl::integral_constant<bool, __is_pod(T) || eastl::is_void<T>::value || eastl::is_scalar<T>::value>{};
 	#else
 		#define EASTL_TYPE_TRAIT_is_pod_CONFORMANCE 0    // is_pod is not conforming. Can return false negatives.
 
