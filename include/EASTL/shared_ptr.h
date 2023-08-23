@@ -1181,6 +1181,9 @@ namespace eastl
 		inline typename eastl::enable_if<!eastl::is_array<T>::value && !eastl::is_array<U>::value, shared_ptr<T> >::type
 		dynamic_shared_pointer_cast(const shared_ptr<U>& sharedPtr) EA_NOEXCEPT
 			{ return dynamic_pointer_cast<T, U>(sharedPtr); }
+#else // Disable dynamic_pointer_cast if RTTI is disabled.
+	    template<typename T, typename U>
+	    inline shared_ptr<T> dynamic_pointer_cast(const shared_ptr<U> &) EA_NOEXCEPT = delete;
 	#endif
 
 
