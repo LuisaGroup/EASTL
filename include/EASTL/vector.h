@@ -267,7 +267,7 @@ namespace eastl
 		size_type size() const EA_NOEXCEPT;
 		size_type size_bytes() const EA_NOEXCEPT;
 		size_type capacity() const EA_NOEXCEPT;
-		constexpr size_type max_size() const EA_NOEXCEPT { return std::numeric_limits<size_type>::max();}
+		constexpr size_type max_size() const EA_NOEXCEPT { return eastl::numeric_limits<size_type>::max();}
 
 		void resize(size_type n, const value_type& value);
 		void resize(size_type n);

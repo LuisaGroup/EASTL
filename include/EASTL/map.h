@@ -111,9 +111,9 @@ namespace eastl
 			value_compare(Compare c) : compare(c) {}
 
 		public:
-			typedef bool       result_type;
-			typedef value_type first_argument_type;
-			typedef value_type second_argument_type;
+			EASTL_REMOVE_AT_2024_APRIL typedef bool       result_type;
+			EASTL_REMOVE_AT_2024_APRIL typedef value_type first_argument_type;
+			EASTL_REMOVE_AT_2024_APRIL typedef value_type second_argument_type;
 
 			bool operator()(const value_type& x, const value_type& y) const 
 				{ return compare(x.first, y.first); }
@@ -232,9 +232,9 @@ namespace eastl
 			value_compare(Compare c) : compare(c) {}
 
 		public:
-			typedef bool       result_type;
-			typedef value_type first_argument_type;
-			typedef value_type second_argument_type;
+			EASTL_REMOVE_AT_2024_APRIL typedef bool       result_type;
+			EASTL_REMOVE_AT_2024_APRIL typedef value_type first_argument_type;
+			EASTL_REMOVE_AT_2024_APRIL typedef value_type second_argument_type;
 
 			bool operator()(const value_type& x, const value_type& y) const 
 				{ return compare(x.first, y.first); }
@@ -390,7 +390,7 @@ namespace eastl
 		// result is a range of size zero or one.
 		const iterator itLower(lower_bound(key));
 
-		if((itLower == end()) || compare(key, itLower.mpNode->mValue.first)) // If at the end or if (key is < itLower)...
+		if((itLower == end()) || compare(key, itLower->first)) // If at the end or if (key is < itLower)...
 			return eastl::pair<iterator, iterator>(itLower, itLower);
 
 		iterator itUpper(itLower);
@@ -406,7 +406,7 @@ namespace eastl
 		// See equal_range above for comments.
 		const const_iterator itLower(lower_bound(key));
 
-		if((itLower == end()) || compare(key, itLower.mpNode->mValue.first)) // If at the end or if (key is < itLower)...
+		if((itLower == end()) || compare(key, itLower->first)) // If at the end or if (key is < itLower)...
 			return eastl::pair<const_iterator, const_iterator>(itLower, itLower);
 
 		const_iterator itUpper(itLower);
@@ -489,8 +489,9 @@ namespace eastl
 	// https://en.cppreference.com/w/cpp/container/map/erase_if
 	///////////////////////////////////////////////////////////////////////
 	template <class Key, class T, class Compare, class Allocator, class Predicate>
-	void erase_if(map<Key, T, Compare, Allocator>& c, Predicate predicate)
+	typename map<Key, T, Compare, Allocator>::size_type erase_if(map<Key, T, Compare, Allocator>& c, Predicate predicate)
 	{
+		auto oldSize = c.size();
 		for (auto i = c.begin(), last = c.end(); i != last;)
 		{
 			if (predicate(*i))
@@ -502,6 +503,7 @@ namespace eastl
 				++i;
 			}
 		}
+		return oldSize - c.size();
 	}
 
 
@@ -527,7 +529,7 @@ namespace eastl
 	map<Key, T, Compare, Allocator>::try_emplace_forward(KFwd&& key, Args&&... args)
 	{
 		bool canInsert;
-		node_type* const pPosition = base_type::DoGetKeyInsertionPositionUniqueKeys(canInsert, key);
+		rbtree_node_base* const pPosition = base_type::DoGetKeyInsertionPositionUniqueKeys(canInsert, key);
 		if (!canInsert)
 		{
 			return pair<iterator, bool>(iterator(pPosition), false);
@@ -564,7 +566,7 @@ namespace eastl
 	map<Key, T, Compare, Allocator>::try_emplace_forward(const_iterator hint, KFwd&& key, Args&&... args)
 	{
 		bool bForceToLeft;
-		node_type* const pPosition = base_type::DoGetKeyInsertionPositionUniqueKeysHint(hint, bForceToLeft, key);
+		rbtree_node_base* const pPosition = base_type::DoGetKeyInsertionPositionUniqueKeysHint(hint, bForceToLeft, key);
 
 		if (!pPosition)
 		{
@@ -709,7 +711,7 @@ namespace eastl
 		const iterator itLower(lower_bound(key));
 		iterator       itUpper(itLower);
 
-		while((itUpper != end()) && !compare(key, itUpper.mpNode->mValue.first))
+		while((itUpper != end()) && !compare(key, itUpper->first))
 			++itUpper;
 
 		return eastl::pair<iterator, iterator>(itLower, itUpper);
@@ -726,7 +728,7 @@ namespace eastl
 		const const_iterator itLower(lower_bound(key));
 		const_iterator       itUpper(itLower);
 
-		while((itUpper != end()) && !compare(key, itUpper.mpNode->mValue.first))
+		while((itUpper != end()) && !compare(key, itUpper->first))
 			++itUpper;
 
 		return eastl::pair<const_iterator, const_iterator>(itLower, itUpper);
@@ -740,8 +742,9 @@ namespace eastl
 	// https://en.cppreference.com/w/cpp/container/multimap/erase_if
 	///////////////////////////////////////////////////////////////////////
 	template <class Key, class T, class Compare, class Allocator, class Predicate>
-	void erase_if(multimap<Key, T, Compare, Allocator>& c, Predicate predicate)
+	typename multimap<Key, T, Compare, Allocator>::size_type erase_if(multimap<Key, T, Compare, Allocator>& c, Predicate predicate)
 	{
+		auto oldSize = c.size();
 		// Erases all elements that satisfy the predicate pred from the container.
 		for (auto i = c.begin(), last = c.end(); i != last;)
 		{
@@ -754,6 +757,7 @@ namespace eastl
 				++i;
 			}
 		}
+		return oldSize - c.size();
 	}
 
 #if defined(EA_COMPILER_HAS_THREE_WAY_COMPARISON)

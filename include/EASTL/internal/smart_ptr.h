@@ -212,14 +212,17 @@ namespace eastl
 		{
 		}
 
-		void operator()(T* p) const EA_NOEXCEPT { 
+		void operator()(T* p) const EA_NOEXCEPT
+		{
 			auto header_size = max<size_t>(alignof(T), sizeof(size_t));
-			auto header_ptr = reinterpret_cast<size_t *>(reinterpret_cast<size_t>(p) - header_size);
+			auto header_ptr = reinterpret_cast<size_t*>(reinterpret_cast<size_t>(p) - header_size);
 			auto ele_size = *header_ptr;
 			auto alloc_size = header_size * ele_size * sizeof(T);
-			if constexpr(!std::is_trivially_constructible_v<T>){
+			if constexpr (!std::is_trivially_constructible_v<T>)
+			{
 				auto end = p + ele_size;
-				for(auto ptr = p; ptr != end; ++ptr){
+				for (auto ptr = p; ptr != end; ++ptr)
+				{
 					ptr->~T();
 				}
 			}
@@ -237,10 +240,12 @@ namespace eastl
 	{
 		typedef T value_type;
 
-		void operator()(const value_type* p)
+		void operator()(const value_type* ptr)
 		    const // We use a const argument type in order to be most flexible with what types we accept.
 		{
-			delete const_cast<value_type*>(p);
+			auto p = const_cast<value_type*>(ptr);
+			p->~T();
+			eastl::GetDefaultAllocator()->deallocate(p, sizeof(T));
 		}
 	};
 
@@ -249,9 +254,14 @@ namespace eastl
 	{
 		typedef void value_type;
 
-		void operator()(const void* p) const
+		void operator()(const void* ptr) const
 		{
-			delete[](char*) p;
+			auto p = (char*)ptr;
+			auto header_size = sizeof(size_t);
+			auto header_ptr = reinterpret_cast<size_t*>(reinterpret_cast<size_t>(p) - header_size);
+			auto ele_size = *header_ptr;
+			auto alloc_size = header_size * ele_size;
+			eastl::GetDefaultAllocator()->deallocate(header_ptr, alloc_size);
 		} // We don't seem to have much choice but to cast to a scalar type.
 	};
 
@@ -260,9 +270,14 @@ namespace eastl
 	{
 		typedef void value_type;
 
-		void operator()(const void* p) const
+		void operator()(const void* ptr) const
 		{
-			delete[](char*) p;
+			auto p = (char*)ptr;
+			auto header_size = sizeof(size_t);
+			auto header_ptr = reinterpret_cast<size_t*>(reinterpret_cast<size_t>(p) - header_size);
+			auto ele_size = *header_ptr;
+			auto alloc_size = header_size * ele_size;
+			eastl::GetDefaultAllocator()->deallocate(header_ptr, alloc_size);
 		} // We don't seem to have much choice but to cast to a scalar type.
 	};
 
@@ -276,10 +291,23 @@ namespace eastl
 	{
 		typedef T value_type;
 
-		void operator()(const value_type* p)
+		void operator()(const value_type* ptr)
 		    const // We use a const argument type in order to be most flexible with what types we accept.
 		{
-			delete[] const_cast<value_type*>(p);
+			auto p = const_cast<value_type*>(ptr);
+			auto header_size = max<size_t>(alignof(T), sizeof(size_t));
+			auto header_ptr = reinterpret_cast<size_t*>(reinterpret_cast<size_t>(p) - header_size);
+			auto ele_size = *header_ptr;
+			auto alloc_size = header_size * ele_size * sizeof(T);
+			if constexpr (!std::is_trivially_constructible_v<T>)
+			{
+				auto end = p + ele_size;
+				for (auto ptr = p; ptr != end; ++ptr)
+				{
+					ptr->~T();
+				}
+			}
+			eastl::GetDefaultAllocator()->deallocate(header_ptr, alloc_size);
 		}
 	};
 
@@ -288,9 +316,14 @@ namespace eastl
 	{
 		typedef void value_type;
 
-		void operator()(const void* p) const
+		void operator()(const void* ptr) const
 		{
-			delete[](char*) p;
+			auto p = (char*)ptr;
+			auto header_size = sizeof(size_t);
+			auto header_ptr = reinterpret_cast<size_t*>(reinterpret_cast<size_t>(p) - header_size);
+			auto ele_size = *header_ptr;
+			auto alloc_size = header_size * ele_size;
+			eastl::GetDefaultAllocator()->deallocate(header_ptr, alloc_size);
 		} // We don't seem to have much choice but to cast to a scalar type.
 	};
 

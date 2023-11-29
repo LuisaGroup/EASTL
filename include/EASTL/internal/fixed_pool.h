@@ -540,13 +540,13 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return EASTL_FIXED_POOL_DEFAULT_NAME;
+			return mOverflowAllocator.get_name();
 		}
 
 
 		void set_name(const char* pName)
 		{
-			// mOverflowAllocator.set_name(pName);
+			mOverflowAllocator.set_name(pName);
 		}
 
 
@@ -606,7 +606,7 @@ namespace eastl
 	class fixed_node_allocator
 	{
 	public:
-		typedef typename type_select<bEnableOverflow, fixed_pool_with_overflow<OverflowAllocator>, fixed_pool>::type  pool_type;
+		typedef typename conditional<bEnableOverflow, fixed_pool_with_overflow<OverflowAllocator>, fixed_pool>::type  pool_type;
 		typedef fixed_node_allocator<nodeSize, nodeCount, nodeAlignment, nodeAlignmentOffset, bEnableOverflow, OverflowAllocator>   this_type;
 		typedef OverflowAllocator overflow_allocator_type;
 
@@ -714,13 +714,13 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return EASTL_FIXED_POOL_DEFAULT_NAME;
+			return mPool.get_name();
 		}
 
 
 		void set_name(const char* pName)
 		{
-			// mPool.set_name(pName);
+			mPool.set_name(pName);
 		}
 
 
@@ -850,13 +850,13 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return EASTL_FIXED_POOL_DEFAULT_NAME;
+			return mPool.get_name();
 		}
 
 
 		void set_name(const char* pName)
 		{
-			// mPool.set_name(pName);
+			mPool.set_name(pName);
 		}
 
 
@@ -938,7 +938,7 @@ namespace eastl
 	class fixed_hashtable_allocator
 	{
 	public:
-		typedef typename type_select<bEnableOverflow, fixed_pool_with_overflow<OverflowAllocator>, fixed_pool>::type                                 pool_type;
+		typedef typename conditional<bEnableOverflow, fixed_pool_with_overflow<OverflowAllocator>, fixed_pool>::type                                 pool_type;
 		typedef fixed_hashtable_allocator<bucketCount, nodeSize, nodeCount, nodeAlignment, nodeAlignmentOffset, bEnableOverflow, OverflowAllocator>  this_type;
 		typedef OverflowAllocator overflow_allocator_type;
 
@@ -1075,13 +1075,13 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return EASTL_FIXED_POOL_DEFAULT_NAME;
+			return mPool.get_name();
 		}
 
 
 		void set_name(const char* pName)
 		{
-			// mPool.set_name(pName);
+			mPool.set_name(pName);
 		}
 
 
@@ -1247,13 +1247,13 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return EASTL_FIXED_POOL_DEFAULT_NAME;
+			return mPool.get_name();
 		}
 
 
 		void set_name(const char* pName)
 		{
-			// mPool.set_name(pName);
+			mPool.set_name(pName);
 		}
 
 
@@ -1382,12 +1382,12 @@ namespace eastl
 
 		void* allocate(size_t n, int flags = 0)
 		{
-			return mOverflowAllocator.allocate(n);
+			return mOverflowAllocator.allocate(n, flags);
 		}
 
 		void* allocate(size_t n, size_t alignment, size_t offset, int flags = 0)
 		{
-			return mOverflowAllocator.allocate(n, alignment, offset);
+			return mOverflowAllocator.allocate(n, alignment, offset, flags);
 		}
 
 		void deallocate(void* p, size_t n)
@@ -1398,12 +1398,12 @@ namespace eastl
 
 		const char* get_name() const
 		{
-			return EASTL_FIXED_POOL_DEFAULT_NAME;
+			return mOverflowAllocator.get_name();
 		}
 
 		void set_name(const char* pName)
 		{
-			// mOverflowAllocator.set_name(pName);
+			mOverflowAllocator.set_name(pName);
 		}
 
 		const overflow_allocator_type& get_overflow_allocator() const EA_NOEXCEPT
