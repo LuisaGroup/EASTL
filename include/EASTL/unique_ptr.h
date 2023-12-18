@@ -533,6 +533,7 @@ namespace eastl
 	///     auto pArray = make_unique<Test[]>(4);
 	///
 	template <typename T, typename... Args>
+	requires(eastl::is_constructible_v<T, Args&&...>)
 	inline typename eastl::enable_if<!eastl::is_array<T>::value, eastl::unique_ptr<T>>::type make_unique(Args&&... args)
 	{
 		auto ptr = new (eastl::GetDefaultAllocator()->allocate(sizeof(T))) T(eastl::forward<Args>(args)...);
@@ -540,6 +541,7 @@ namespace eastl
 	}
 
 	template <typename T>
+	requires(eastl::is_default_constructible_v<T>)
 	inline typename eastl::enable_if<eastl::is_unbounded_array<T>::value, eastl::unique_ptr<T>>::type make_unique(
 	    size_t n)
 	{

@@ -320,6 +320,7 @@ namespace eastl
 	    }
 
 	    template <class U, typename = typename eastl::enable_if<eastl::is_same<eastl::decay_t<U>, T>::value>::type>
+		requires(eastl::is_constructible_v<value_type, U&&>)
 	    inline optional& operator=(U&& u)
 	    {
 			if(engaged)
@@ -360,6 +361,7 @@ namespace eastl
 		inline const T&& operator*() const&&  { return get_rvalue_ref(); }
 
 		template <class... Args>
+		requires(eastl::is_constructible_v<value_type, Args&&...>)
 		void emplace(Args&&... args)
 		{
 			if (engaged)
@@ -372,6 +374,7 @@ namespace eastl
 		}
 
 		template <class U, class... Args>
+		requires(eastl::is_constructible_v<value_type, Args&&...>)
 		void emplace(std::initializer_list<U> ilist, Args&&... args)
 		{
 			if (engaged)

@@ -1225,6 +1225,7 @@ namespace eastl
 	}
 
 	template <typename T, typename... Args>
+	requires(eastl::is_constructible_v<T, Args&&...>)
 	shared_ptr<T> make_shared(Args&&... args)
 	{
 		// allocate with the default allocator.
