@@ -28,6 +28,9 @@ end)
 add_headerfiles("include/**.h")
 add_headerfiles("packages/EABase/include/Common/**.h")
 add_files("source/*.cpp")
+if enable_custom_malloc then
+	add_defines("EASTL_CUSTOM_MALLOC_ENABLED=1")	
+end
 if enable_mimalloc then
 	add_defines("EASTL_MIMALLOC_ENABLED=1")
 	includes("packages/mimalloc")

@@ -63,7 +63,12 @@ namespace eastl
 
 		const char* get_name() const;
 		void        set_name(const char* pName);
-
+		static void set_custom_malloc(
+			void*(*custom_malloc)(size_t /*size*/),
+			void*(*custom_aligned_malloc)(size_t /*alignment*/, size_t /*size*/),
+			void(*custom_free)(void* /*ptr*/),
+			void*(*custom_realloc)(void* /*ptr*/, size_t /*size*/)
+		);
 	protected:
 		#if EASTL_NAME_ENABLED
 			const char* mpName; // Debug name, used to track memory.

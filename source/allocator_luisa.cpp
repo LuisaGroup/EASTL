@@ -4,7 +4,9 @@
 
 #include <EASTL/allocator.h>
 #include <EASTL/internal/config.h>
-
+#ifdef EASTL_CUSTOM_MALLOC_ENABLED
+#include <cstdio>
+#endif
 #ifdef EASTL_MIMALLOC_ENABLED
 #include <mimalloc.h>
 #else
@@ -12,16 +14,44 @@
 #endif
 namespace eastl
 {
-
+#ifdef _WIN32
+#define EASTL_ALIGNED_ALLOC(align, size) _aligned_malloc(size, align)
+#else
+#define EASTL_ALIGNED_ALLOC(align, size) ::aligned_alloc(align, size)
+#endif
 	namespace detail
 	{
+#ifdef EASTL_CUSTOM_MALLOC_ENABLED
+		static void* (*_custom_malloc)(size_t /*size*/) = nullptr;
+		static void* (*_custom_aligned_malloc)(size_t /*alignment*/, size_t /*size*/) = nullptr;
+		static void (*_custom_free)(void* /*ptr*/) = nullptr;
+		static void* (*_custom_realloc)(void* /*ptr*/, size_t /*size*/) = nullptr;
+		class CustomAllocSetOptions
+		{
+		public:
+			CustomAllocSetOptions()
+			{
+#ifdef EASTL_MIMALLOC_ENABLED
+				_custom_malloc = mi_malloc;
+				_custom_free = mi_free;
+				_custom_aligned_malloc = mi_aligned_alloc;
+				_custom_realloc = mi_realloc;
+#else
+				_custom_malloc = malloc;
+				_custom_free = free;
+				_custom_aligned_malloc = [](size_t align, size_t size) { return EASTL_ALIGNED_ALLOC(align, size); };
+				_custom_realloc = realloc;
+#endif
+			}
+		};
+		static CustomAllocSetOptions _custom_malloc_options;
+#endif
+
 #ifdef EASTL_MIMALLOC_ENABLED
 		class MimallocSetOptions
 		{
 		public:
-			MimallocSetOptions() {
-				mi_option_set(mi_option_allow_large_os_pages, 1);
-			}
+			MimallocSetOptions() { mi_option_set(mi_option_allow_large_os_pages, 1); }
 		};
 		static MimallocSetOptions _mimalloc_set_options;
 #endif
@@ -32,6 +62,21 @@ namespace eastl
 			return pa;
 		}
 	} // namespace detail
+	void allocator::set_custom_malloc(void* (*custom_malloc)(size_t /*size*/),
+	                                  void* (*custom_aligned_malloc)(size_t /*alignment*/, size_t /*size*/),
+	                                  void (*custom_free)(void* /*ptr*/),
+	                                  void* (*custom_realloc)(void* /*ptr*/, size_t /*size*/))
+	{
+#ifndef EASTL_CUSTOM_MALLOC_ENABLED
+		std::printf("EASTL's custom malloc not enabled.");
+		std::abort();
+#else
+		detail::_custom_malloc = custom_malloc;
+		detail::_custom_aligned_malloc = custom_aligned_malloc;
+		detail::_custom_free = custom_free;
+		detail::_custom_realloc = custom_realloc;
+#endif
+	}
 
 	EASTL_API allocator* GetDefaultAllocator() { return detail::GetDefaultAllocatorRef(); }
 
@@ -44,19 +89,27 @@ namespace eastl
 
 	void* allocator::reallocate(void* originPtr, size_t n)
 	{
+#ifdef EASTL_CUSTOM_MALLOC_ENABLED
+		return detail::_custom_realloc(originPtr, n);
+#else
 #ifdef EASTL_MIMALLOC_ENABLED
 		return mi_realloc(originPtr, n);
 #else
 		return realloc(originPtr, n);
 #endif
+#endif
 	}
 
 	void* allocator::allocate(size_t n, int /* flags */)
 	{
+#ifdef EASTL_CUSTOM_MALLOC_ENABLED
+		return detail::_custom_malloc(n);
+#else
 #ifdef EASTL_MIMALLOC_ENABLED
 		return mi_malloc(n);
 #else
 		return malloc(n);
+#endif
 #endif
 	}
 
@@ -68,21 +121,28 @@ namespace eastl
 		{
 			return allocate(n, flags);
 		}
-
+#ifdef EASTL_CUSTOM_MALLOC_ENABLED
+		return detail::_custom_aligned_malloc(alignment, n);
+#else
 #ifdef EASTL_MIMALLOC_ENABLED
 		return mi_aligned_alloc(alignment, n);
 #else
-		return aligned_alloc(alignment, n);
+		return EASTL_ALIGNED_ALLOC(alignment, n);
+#endif
 #endif
 	}
 
 
 	void allocator::deallocate(void* p, size_t)
 	{
+#ifdef EASTL_CUSTOM_MALLOC_ENABLED
+		detail::_custom_free(p);
+#else
 #ifdef EASTL_MIMALLOC_ENABLED
 		mi_free(p);
 #else
 		free(p);
+#endif
 #endif
 	}
 
