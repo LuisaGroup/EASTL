@@ -2,11 +2,10 @@
 // Created by Mike Smith on 2021/12/24.
 //
 
+#include <cstdio>
+
 #include <EASTL/allocator.h>
 #include <EASTL/internal/config.h>
-#ifdef EASTL_CUSTOM_MALLOC_ENABLED
-#include <cstdio>
-#endif
 #ifdef EASTL_MIMALLOC_ENABLED
 #include <mimalloc.h>
 #else
