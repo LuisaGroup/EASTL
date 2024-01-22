@@ -2,13 +2,12 @@
 // Created by Mike Smith on 2021/12/24.
 //
 
-#include <cstdio>
-
 #include <EASTL/allocator.h>
 #include <EASTL/internal/config.h>
 #ifdef EASTL_MIMALLOC_ENABLED
 #include <mimalloc.h>
-#else
+#endif
+#if !defined(EASTL_MIMALLOC_ENABLED) || !defined(EASTL_CUSTOM_MALLOC_ENABLED)
 #include <cstdlib>
 #endif
 namespace eastl
@@ -36,10 +35,10 @@ namespace eastl
 				_custom_aligned_malloc = mi_aligned_alloc;
 				_custom_realloc = mi_realloc;
 #else
-				_custom_malloc = malloc;
-				_custom_free = free;
+				_custom_malloc = std::malloc;
+				_custom_free = std::free;
 				_custom_aligned_malloc = [](size_t align, size_t size) { return EASTL_ALIGNED_ALLOC(align, size); };
-				_custom_realloc = realloc;
+				_custom_realloc = std::realloc;
 #endif
 			}
 		};
@@ -67,7 +66,7 @@ namespace eastl
 	                                  void* (*custom_realloc)(void* /*ptr*/, size_t /*size*/))
 	{
 #ifndef EASTL_CUSTOM_MALLOC_ENABLED
-		std::printf("EASTL's custom malloc not enabled.");
+		// EASTL's custom malloc not enabled.
 		std::abort();
 #else
 		detail::_custom_malloc = custom_malloc;
@@ -94,7 +93,7 @@ namespace eastl
 #ifdef EASTL_MIMALLOC_ENABLED
 		return mi_realloc(originPtr, n);
 #else
-		return realloc(originPtr, n);
+		return std::realloc(originPtr, n);
 #endif
 #endif
 	}
@@ -107,7 +106,7 @@ namespace eastl
 #ifdef EASTL_MIMALLOC_ENABLED
 		return mi_malloc(n);
 #else
-		return malloc(n);
+		return std::malloc(n);
 #endif
 #endif
 	}
@@ -140,7 +139,7 @@ namespace eastl
 #ifdef EASTL_MIMALLOC_ENABLED
 		mi_free(p);
 #else
-		free(p);
+		std::free(p);
 #endif
 #endif
 	}
