@@ -1,4 +1,3 @@
-includes("packages/mimalloc/build_proj.lua")
 target("eastl")
 _config_project({
 	project_kind = "shared",
@@ -33,7 +32,11 @@ if enable_custom_malloc then
 end
 if enable_mimalloc then
 	add_defines("EASTL_MIMALLOC_ENABLED=1")
-	includes("packages/mimalloc")
-	add_deps("mimalloc")
+	if os.exists("packages/mimalloc/xmake.lua") then
+		includes("packages/mimalloc/xmake.lua")		
+	end
+	if os.exists("packages/mimalloc/build_proj.lua") then
+		includes("packages/mimalloc/build_proj.lua")		
+	end
 end
 target_end()
