@@ -112,7 +112,6 @@ namespace eastl
 	#endif
 
 
-
 	/// return_temporary_buffer
 	///
 	/// From the C++ standard, section 20.4.3:
@@ -295,6 +294,7 @@ namespace eastl
 		const typename base_type::value_type* get() const EA_NOEXCEPT
 			{ return base_type::mpValue; }
 	};
+
 
 
 	/// uninitialized_relocate (formerly named uninitialized_move prior to C++11)

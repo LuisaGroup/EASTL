@@ -383,13 +383,6 @@ namespace eastl
 			{ return !eastl::forward<T>(t); }
 	};
 
-
-
-	///////////////////////////////////////////////////////////////////////
-	// Dual type functions
-	///////////////////////////////////////////////////////////////////////
-
-	EASTL_INTERNAL_DISABLE_DEPRECATED() // '*': was declared deprecated
 	// not_fn_ret
 	// not_fn_ret is a implementation specified return type of eastl::not_fn.
 	// The type name is not specified but it does have mandated functions that conforming implementations must support.

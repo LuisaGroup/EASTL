@@ -84,8 +84,6 @@ namespace eastl
 		// explicitly check both the iterator_category and the type.
 		struct contiguous_iterator_tag    : public random_access_iterator_tag { };
 	#endif
-
-
 	// struct iterator_traits
 	namespace internal
 	{

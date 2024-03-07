@@ -335,13 +335,6 @@ inline bool eastl::safe_object::has_unique_reference() const
 	return mpSafePtrList ? mpSafePtrList->unique() : false;
 }
 
-// Deprecated:
-inline bool eastl::safe_object::has_references() const
-{
-	return mpSafePtrList ? mpSafePtrList->unique() : false;
-}
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // safe_ptr<T>
 ///////////////////////////////////////////////////////////////////////////////

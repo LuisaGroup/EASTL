@@ -128,7 +128,6 @@ namespace eastl
 		: public maybe_derive_from_unary_function<T>,
 		  public maybe_derive_from_binary_function<T>
 	{
-		EASTL_REMOVE_AT_2024_APRIL typedef typename T::result_type result_type;
 	};
 
 	template <class T>
@@ -142,6 +141,8 @@ namespace eastl
 	//
 	template <class T>
 	struct weak_result_type : public weak_result_type_imp<T> { };
+
+
 	// 1 argument case 
 	template <class R, class A1> struct weak_result_type<R(A1)> : public unary_function<A1, R> { }; 
 	template <class R, class A1> struct weak_result_type<R(&)(A1)> : public unary_function<A1, R> { }; 
@@ -159,6 +160,17 @@ namespace eastl
 	template <class R, class C, class A1> struct weak_result_type<R (C::*)(A1) const> : public binary_function<const C*, A1, R> { }; 
 	template <class R, class C, class A1> struct weak_result_type<R (C::*)(A1) volatile> : public binary_function<volatile C*, A1, R> { }; 
 	template <class R, class C, class A1> struct weak_result_type<R (C::*)(A1) const volatile> : public binary_function<const volatile C*, A1, R> { };
+
+	// 3 or more arguments
+#if EASTL_VARIADIC_TEMPLATES_ENABLED 
+	template <class R, class A1, class A2, class A3, class... A4> struct weak_result_type<R(A1, A2, A3, A4...)> {  };
+	template <class R, class A1, class A2, class A3, class... A4> struct weak_result_type<R(&)(A1, A2, A3, A4...)> {  };
+	template <class R, class A1, class A2, class A3, class... A4> struct weak_result_type<R (*)(A1, A2, A3, A4...)> {  };
+	template <class R, class C, class A1, class A2, class... A3> struct weak_result_type<R (C::*)(A1, A2, A3...)> {  };
+	template <class R, class C, class A1, class A2, class... A3> struct weak_result_type<R (C::*)(A1, A2, A3...) const> {  };
+	template <class R, class C, class A1, class A2, class... A3> struct weak_result_type<R (C::*)(A1, A2, A3...) volatile> {  };
+	template <class R, class C, class A1, class A2, class... A3> struct weak_result_type<R (C::*)(A1, A2, A3...) const volatile> {  };
+#endif
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// mem_fn_impl

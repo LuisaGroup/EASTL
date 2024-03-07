@@ -110,7 +110,6 @@ namespace eastl
 			Compare compare;
 			value_compare(Compare c) : compare(c) {}
 
-		public:
 			bool operator()(const value_type& x, const value_type& y) const 
 				{ return compare(x.first, y.first); }
 		};
@@ -227,7 +226,6 @@ namespace eastl
 			Compare compare;
 			value_compare(Compare c) : compare(c) {}
 
-		public:
 			bool operator()(const value_type& x, const value_type& y) const 
 				{ return compare(x.first, y.first); }
 		};

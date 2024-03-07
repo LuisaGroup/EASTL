@@ -177,6 +177,7 @@ namespace eastl
 
 	template <typename T>
 	struct is_floating_point : public eastl::is_floating_point_helper<typename eastl::remove_cv<T>::type>{};
+
 	#if EASTL_VARIABLE_TEMPLATES_ENABLED
 		template <class T>
 		EA_CONSTEXPR bool is_floating_point_v = is_floating_point<T>::value;

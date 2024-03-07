@@ -84,6 +84,39 @@ namespace eastl
 		EA_CONSTEXPR bool is_array_v = is_array<T>::value;
 	#endif
 
+
+	///////////////////////////////////////////////////////////////////////
+	// is_array_of_known_bounds
+	//
+	// Deprecated in C++20. Use is_bounded_array<T>.
+	// 
+	// is_array_of_known_bounds<T>::value is true if T is an array and is 
+	// of known bounds. is_array_of_unknown_bounds<int[3]>::value == true,
+	// while is_array_of_unknown_bounds<int[]>::value = false.
+	// 
+	///////////////////////////////////////////////////////////////////////
+
+	template<typename T>
+	struct EASTL_REMOVE_AT_2024_APRIL is_array_of_known_bounds
+		: public eastl::integral_constant<bool, eastl::extent<T>::value != 0> {};
+
+
+	///////////////////////////////////////////////////////////////////////
+	// is_array_of_unknown_bounds
+	//
+	// Deprecated in C++20. Use is_unbounded_array<T>.
+	// 
+	// is_array_of_unknown_bounds<T>::value is true if T is an array but is 
+	// of unknown bounds. is_array_of_unknown_bounds<int[3]>::value == false,
+	// while is_array_of_unknown_bounds<int[]>::value = true.
+	// 
+	///////////////////////////////////////////////////////////////////////
+
+	template<typename T>
+	struct EASTL_REMOVE_AT_2024_APRIL is_array_of_unknown_bounds
+		: public eastl::integral_constant<bool, eastl::is_array<T>::value && (eastl::extent<T>::value == 0)> {};
+
+
 	///////////////////////////////////////////////////////////////////////
 	// is_member_function_pointer
 	//

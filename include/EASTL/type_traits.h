@@ -326,6 +326,7 @@ namespace eastl
 		argument_sink(Args&&...) {}
 	};
 
+
 	///////////////////////////////////////////////////////////////////////
 	// type_select
 	//
@@ -350,6 +351,8 @@ namespace eastl
 		template <bool bCondition, class ConditionIsTrueType, class ConditionIsFalseType>
 		using type_select_t EASTL_REMOVE_AT_2024_APRIL = typename type_select<bCondition, ConditionIsTrueType, ConditionIsFalseType>::type;
 	#endif
+
+
 
 	///////////////////////////////////////////////////////////////////////
 	// first_type_select
@@ -473,6 +476,30 @@ namespace eastl
 	#if EASTL_VARIABLE_TEMPLATES_ENABLED
 		template <typename B>
 		EASTL_CPP17_INLINE_VARIABLE EA_CONSTEXPR bool negation_v = negation<B>::value;
+	#endif
+
+
+
+	///////////////////////////////////////////////////////////////////////
+	// identity
+	//
+	// The purpose of this is typically to deal with non-deduced template
+	// contexts. See the C++11 Standard, 14.8.2.5 p5.
+	// Also: http://cppquiz.org/quiz/question/109?result=CE&answer=&did_answer=Answer
+	//
+	// Dinkumware has an identity, but adds a member function to it:
+	//     const T& operator()(const T& t) const{ return t; }
+	//
+	// NOTE(rparolin): Use 'eastl::type_identity' it was included in the C++20
+	// standard. This is a legacy EASTL type we continue to support for
+	// backwards compatibility. 
+	//
+	template <typename T>
+	struct EASTL_REMOVE_AT_2024_APRIL identity { using type = T; };
+
+	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template <typename T>
+		using identity_t EASTL_REMOVE_AT_2024_APRIL = typename identity<T>::type;
 	#endif
 
 

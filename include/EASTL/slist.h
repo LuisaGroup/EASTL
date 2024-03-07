@@ -341,7 +341,6 @@ namespace eastl
 		void splice_after(const_iterator position, this_type&& x);
 		void splice_after(const_iterator position, this_type&& x, const_iterator i);
 		void splice_after(const_iterator position, this_type&& x, const_iterator first, const_iterator last);
-
 		// Sorting functionality
 		// This is independent of the global sort algorithms, as lists are 
 		// linked nodes and can be sorted more efficiently by moving nodes

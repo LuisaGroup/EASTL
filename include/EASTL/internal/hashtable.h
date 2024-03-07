@@ -531,7 +531,6 @@ namespace eastl
 	public:
 		H1 hash_function() const
 			{ return H1(); }
-
 		const Equal& key_eq() const
 			{ return mEqual; }
 
@@ -618,7 +617,6 @@ namespace eastl
 
 		H1 hash_function() const
 			{ return m_h1; }
-
 		const Equal& key_eq() const
 			{ return mEqual; }
 
@@ -686,7 +684,6 @@ namespace eastl
 
 		H1 hash_function() const
 			{ return m_h1; }
-
 		const Equal& key_eq() const
 			{ return mEqual; }
 
@@ -2948,6 +2945,7 @@ namespace eastl
 
 		return isf_none;
 	}
+
 
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
