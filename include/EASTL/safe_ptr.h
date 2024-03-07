@@ -54,10 +54,6 @@ namespace eastl
 		void remove(safe_ptr_base* pBase) const;      /// Unlink pBase from my list of safe pointers.
 
 		mutable safe_ptr_base* mpSafePtrList;
-
-	public:
-		// Deprecated, as its name is misleading:
-		EASTL_REMOVE_AT_2024_APRIL bool has_references() const;	/// Returns true if there is at most one reference (by a smart_ptr) to us.
 	};
 
 

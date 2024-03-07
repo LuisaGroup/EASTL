@@ -69,12 +69,6 @@ namespace eastl
 		typedef eastl::reverse_iterator<const_iterator>       const_reverse_iterator;
 		typedef eastl_size_t                                  size_type;        // See config.h for the definition of eastl_size_t, which defaults to size_t.
 		typedef ptrdiff_t                                     difference_type;
-
-		enum
-		{
-			count EASTL_REMOVE_AT_2024_APRIL = N
-		};
-
 		// Note that the member data is intentionally public.
 		// This allows for aggregate initialization of the
 		// object (e.g. array<int, 5> a = { 0, 3, 2, 4 }; )
@@ -144,11 +138,6 @@ namespace eastl
 		typedef eastl::reverse_iterator<const_iterator>       const_reverse_iterator;
 		typedef eastl_size_t                                  size_type;        // See config.h for the definition of eastl_size_t, which defaults to size_t.
 		typedef ptrdiff_t                                     difference_type;
-
-		enum
-		{
-			count EASTL_REMOVE_AT_2024_APRIL = 0
-		};
 
 		// We intentionally provide no constructor, destructor, or assignment operator.
 

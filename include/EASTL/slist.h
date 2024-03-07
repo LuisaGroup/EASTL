@@ -342,12 +342,6 @@ namespace eastl
 		void splice_after(const_iterator position, this_type&& x, const_iterator i);
 		void splice_after(const_iterator position, this_type&& x, const_iterator first, const_iterator last);
 
-		// The following splice_after funcions are deprecated, as they don't allow for recognizing 
-		// the allocator, cannot maintain the source mSize, and are not in the C++11 Standard definition 
-		// of std::forward_list (which is the equivalent of this class).
-		EASTL_REMOVE_AT_2024_APRIL void splice_after(const_iterator position, const_iterator before_first, const_iterator before_last);  // before_first and before_last come from a source container.
-		EASTL_REMOVE_AT_2024_APRIL void splice_after(const_iterator position, const_iterator previous);                                  // previous comes from a source container.
-
 		// Sorting functionality
 		// This is independent of the global sort algorithms, as lists are 
 		// linked nodes and can be sorted more efficiently by moving nodes
@@ -1438,72 +1432,6 @@ namespace eastl
 	{
 		return splice_after(position, x, first, last);  // This will call splice_after(const_iterator, this_type&, const_iterator, const_iterator)
 	}
-
-
-	// This function is deprecated.
-	// We have no way of knowing what the container or allocator for before_first/before_last is. 
-	// Thus this function requires that the iterators come from equivalent allocators.
-	template <typename T, typename Allocator>
-	inline void slist<T, Allocator>::splice_after(const_iterator position, const_iterator before_first, const_iterator before_last)
-	{
-		if(before_first != before_last) // If there is anything to splice...
-		{
-			#if EASTL_SLIST_SIZE_CACHE
-				// We have a problem here because the inserted range may come from *this or 
-				// it may come from some other list. We have no choice but to implement an O(n)
-				// brute-force search in our list for 'previous'.
-
-				iterator i(&internalNode());
-				iterator iEnd(NULL);
-
-				for( ; i != iEnd; ++i)
-				{
-					if(i == before_first)
-						break;
-				}
-	 
-				if(i == iEnd) // If the input came from an external range...
-					mSize += (size_type)eastl::distance(before_first, before_last); // Note that we have no way of knowing how to decrementing the size from the external container, assuming it came from one.
-				else
-					{ EASTL_FAIL_MSG("slist::splice_after: Impossible to decrement source mSize. Use the other splice_after function instead."); }
-			#endif
-
-			// Insert the range of [before_first + 1, before_last + 1) after position.
-			SListNodeSpliceAfter(position.mpNode, before_first.mpNode, before_last.mpNode);
-		}
-	}
-
-
-	// This function is deprecated.
-	// We have no way of knowing what the container or allocator for previous is. 
-	// Thus this function requires that the iterators come from equivalent allocators.
-	template <typename T, typename Allocator>
-	inline void slist<T, Allocator>::splice_after(const_iterator position, const_iterator previous)
-	{
-		#if EASTL_SLIST_SIZE_CACHE
-			// We have a problem here because the inserted range may come from *this or 
-			// it may come from some other list. We have no choice but to implement an O(n)
-			// brute-force search in our list for 'previous'.
-
-			iterator i(&internalNode());
-			iterator iEnd(NULL);
-
-			for( ; i != iEnd; ++i)
-			{
-				if(i == previous)
-					break;
-			}
- 
-			if(i == iEnd) // If the input came from an external range...
-				++mSize;  // Note that we have no way of knowing how to decrementing the size from the external container, assuming it came from one.
-			else
-				{ EASTL_FAIL_MSG("slist::splice_after: Impossible to decrement source mSize. Use the other splice_after function instead."); }
-		#endif
-
-		// Insert the element at previous + 1 after position.
-		SListNodeSpliceAfter(position.mpNode, previous.mpNode, previous.mpNode->mpNext);
-	}
-
 
 	template <typename T, typename Allocator>
 	inline void slist<T, Allocator>::sort()

@@ -86,19 +86,6 @@ namespace eastl
 	#endif
 
 
-	// struct iterator
-	template <typename Category, typename T, typename Distance = ptrdiff_t,
-			  typename Pointer = T*, typename Reference = T&>
-	struct EASTL_REMOVE_AT_2024_APRIL iterator
-	{
-		typedef Category  iterator_category;
-		typedef T         value_type;
-		typedef Distance  difference_type;
-		typedef Pointer   pointer;
-		typedef Reference reference;
-	};
-
-
 	// struct iterator_traits
 	namespace internal
 	{

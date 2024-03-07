@@ -532,9 +532,6 @@ namespace eastl
 		H1 hash_function() const
 			{ return H1(); }
 
-		EASTL_REMOVE_AT_2024_APRIL Equal equal_function() const // Deprecated. Use key_eq() instead, as key_eq is what the new C++ standard 
-			{ return mEqual; }					   // has specified in its hashtable (unordered_*) proposal.
-
 		const Equal& key_eq() const
 			{ return mEqual; }
 
@@ -622,9 +619,6 @@ namespace eastl
 		H1 hash_function() const
 			{ return m_h1; }
 
-		EASTL_REMOVE_AT_2024_APRIL Equal equal_function() const // Deprecated. Use key_eq() instead, as key_eq is what the new C++ standard 
-			{ return mEqual; }					   // has specified in its hashtable (unordered_*) proposal.
-
 		const Equal& key_eq() const
 			{ return mEqual; }
 
@@ -692,9 +686,6 @@ namespace eastl
 
 		H1 hash_function() const
 			{ return m_h1; }
-
-		EASTL_REMOVE_AT_2024_APRIL Equal equal_function() const // Deprecated. Use key_eq() instead, as key_eq is what the new C++ standard 
-			{ return mEqual; }					   // has specified in its hashtable (unordered_*) proposal.
 
 		const Equal& key_eq() const
 			{ return mEqual; }
@@ -865,12 +856,6 @@ namespace eastl
 		using hash_code_base_type::copy_code;
 
 		static const bool kCacheHashCode = bCacheHashCode;
-
-		enum
-		{
-			// This enumeration is deprecated in favor of eastl::kHashtableAllocFlagBuckets.
-			kAllocFlagBuckets EASTL_REMOVE_AT_2024_APRIL = eastl::kHashtableAllocFlagBuckets                  // Flag to allocator which indicates that we are allocating buckets and not nodes.
-		};
 
 	protected:
 		node_type**     mpBucketArray;
@@ -2963,59 +2948,6 @@ namespace eastl
 
 		return isf_none;
 	}
-
-
-
-	///////////////////////////////////////////////////////////////////////
-	// global operators
-	///////////////////////////////////////////////////////////////////////
-
-	// operator==, != have been moved to the specific container subclasses (e.g. hash_map).
-
-	// The following comparison operators are deprecated and will likely be removed in a  
-	// future version of this package.
-	//
-	// Comparing hash tables for less-ness is an odd thing to do. We provide it for 
-	// completeness, though the user is advised to be wary of how they use this.
-	//
-	template <typename K, typename V, typename A, typename EK, typename Eq,
-			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
-	EASTL_REMOVE_AT_2024_APRIL inline bool operator<(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a,
-						  const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& b)
-	{
-		// This requires hash table elements to support operator<. Since the hash table
-		// doesn't compare elements via less (it does so via equals), we must use the 
-		// globally defined operator less for the elements.
-		return eastl::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
-	}
-
-
-	template <typename K, typename V, typename A, typename EK, typename Eq,
-			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
-	EASTL_REMOVE_AT_2024_APRIL inline bool operator>(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a,
-						  const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& b)
-	{
-		return b < a;
-	}
-
-
-	template <typename K, typename V, typename A, typename EK, typename Eq,
-			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
-	EASTL_REMOVE_AT_2024_APRIL inline bool operator<=(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a,
-						   const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& b)
-	{
-		return !(b < a);
-	}
-
-
-	template <typename K, typename V, typename A, typename EK, typename Eq,
-			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>
-	EASTL_REMOVE_AT_2024_APRIL inline bool operator>=(const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& a,
-						   const hashtable<K, V, A, EK, Eq, H1, H2, H, RP, bC, bM, bU>& b)
-	{
-		return !(a < b);
-	}
-
 
 	template <typename K, typename V, typename A, typename EK, typename Eq,
 			  typename H1, typename H2, typename H, typename RP, bool bC, bool bM, bool bU>

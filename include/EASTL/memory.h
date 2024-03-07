@@ -112,31 +112,6 @@ namespace eastl
 	#endif
 
 
-	/// get_temporary_buffer
-	///
-	/// From the C++ standard, section 20.4.3:
-	///    1 Effects: Obtains a pointer to storage sufficient to store up to n adjacent T objects.
-	///    2 Returns: A pair containing the buffer's address and capacity (in the units of sizeof(T)), 
-	///               or a pair of 0 values if no storage can be obtained.
-	///
-	/// Note: The return value is space to hold T elements, but no T elements are constructed.
-	///
-	/// Our implementation here differs slightly in that we have alignment, alignmentOffset, and pName arguments.
-	/// Note that you can use the EASTL_NAME_VAL macro to make names go away in release builds.
-	///
-	/// Example usage:
-	///    pair<int*, ptrdiff_t> pr = get_temporary_buffer<int>(100, 0, 0, EASTL_NAME_VAL("Temp int array"));
-	///    memset(pr.first, 0, 100 * sizeof(int));
-	///    return_temporary_buffer(pr.first);
-	/// 
-	template <typename T>
-	EASTL_REMOVE_AT_2024_APRIL
-	eastl::pair<T*, ptrdiff_t> get_temporary_buffer(ptrdiff_t n, size_t alignment = 1, size_t alignmentOffset = 0, const char* pName = EASTL_TEMP_DEFAULT_NAME)
-	{
-		EASTLAllocatorType allocator(*EASTLAllocatorDefault(), pName);
-		return eastl::pair<T*, ptrdiff_t>(static_cast<T*>(EASTLAllocAligned(allocator, n * sizeof(T), alignment, alignmentOffset)), n);
-	}
-
 
 	/// return_temporary_buffer
 	///
@@ -322,59 +297,6 @@ namespace eastl
 	};
 
 
-
-	/// raw_storage_iterator
-	///
-	/// From the C++11 Standard, section 20.6.10 p1
-	/// raw_storage_iterator is provided to enable algorithms to store their results into uninitialized memory.
-	/// The formal template parameter OutputIterator is required to have its operator* return an object for
-	/// which operator& is defined and returns a pointer to T, and is also required to satisfy the requirements 
-	/// of an output iterator (24.2.4).
-
-	template <typename OutputIterator, typename T>
-	class EASTL_REMOVE_AT_2024_APRIL raw_storage_iterator
-	{
-	protected:
-		OutputIterator mIterator;
-
-	public:
-		typedef EASTL_ITC_NS::output_iterator_tag	iterator_category;
-		typedef void								value_type;
-		typedef void								difference_type;
-		typedef void								pointer;
-		typedef void								reference;
-
-		explicit raw_storage_iterator(OutputIterator iterator)
-		  : mIterator(iterator) 
-		{
-		}
-
-		raw_storage_iterator& operator*() 
-		{
-			return *this;
-		}
-
-		raw_storage_iterator& operator=(const T& value)
-		{
-			::new(eastl::addressof(*mIterator)) T(value);
-			return *this;
-		}
-
-		raw_storage_iterator<OutputIterator, T>& operator++()
-		{
-			++mIterator;
-			return *this;
-		}
-
-		raw_storage_iterator<OutputIterator, T> operator++(int)
-		{
-			raw_storage_iterator<OutputIterator, T> tempIterator = *this;
-			++mIterator;
-			return tempIterator;
-		}
-	};
-
-
 	/// uninitialized_relocate (formerly named uninitialized_move prior to C++11)
 	///
 	/// This utility is deprecated in favor of C++11 rvalue move functionality.
@@ -469,104 +391,6 @@ namespace eastl
 			}
 		};
 	}
-
-	EASTL_INTERNAL_DISABLE_DEPRECATED() // 'has_trivial_relocate': was declared deprecated
-
-	/// uninitialized_relocate_start, uninitialized_relocate_commit, uninitialized_relocate_abort
-	///
-	/// This utility is deprecated in favor of C++11 rvalue move functionality.
-	///
-	/// After calling uninitialized_relocate_start, if it doesn't throw an exception,
-	/// both the source and destination iterators point to undefined data. If it
-	/// does throw an exception, the destination remains uninitialized and the source
-	/// is as it was before.
-	///
-	/// In order to make the iterators valid again you need to call either uninitialized_relocate_abort
-	/// or uninitialized_relocate_commit. The abort call makes the original source
-	/// iterator valid again, and commit makes the destination valid. Both abort
-	/// and commit are guaranteed to not throw C++ exceptions.
-	///
-	/// Example usage:
-	///     iterator dest2 = uninitialized_relocate_start(first, last, dest);
-	///     try {
-	///         // some code here that might throw an exception
-	///     }
-	///     catch(...)
-	///     {
-	///         uninitialized_relocate_abort(first, last, dest);
-	///         throw;
-	///     }
-	///     uninitialized_relocate_commit(first, last, dest);
-	///
-	template <typename ForwardIterator, typename ForwardIteratorDest>
-	EASTL_REMOVE_AT_2024_APRIL inline ForwardIteratorDest uninitialized_relocate_start(ForwardIterator first, ForwardIterator last, ForwardIteratorDest dest)
-	{
-		typedef typename eastl::iterator_traits<ForwardIterator>::iterator_category IC;
-		typedef typename eastl::iterator_traits<ForwardIterator>::value_type value_type_input;
-		typedef typename eastl::iterator_traits<ForwardIteratorDest>::value_type value_type_output;
-
-		EASTL_INTERNAL_DISABLE_DEPRECATED()
-		const bool bHasTrivialMove = type_and<has_trivial_relocate<value_type_input>::value,
-												is_pointer<ForwardIterator>::value,
-												is_pointer<ForwardIteratorDest>::value,
-												is_same<value_type_input, value_type_output>::value>::value;
-		EASTL_INTERNAL_RESTORE_DEPRECATED()
-
-		return Internal::uninitialized_relocate_impl<bHasTrivialMove, IC>::do_move_start(first, last, dest);
-	}
-
-	template <typename ForwardIterator, typename ForwardIteratorDest>
-	EASTL_REMOVE_AT_2024_APRIL inline ForwardIteratorDest uninitialized_relocate_commit(ForwardIterator first, ForwardIterator last, ForwardIteratorDest dest)
-	{
-		typedef typename eastl::iterator_traits<ForwardIterator>::iterator_category IC;
-		typedef typename eastl::iterator_traits<ForwardIterator>::value_type value_type_input;
-		typedef typename eastl::iterator_traits<ForwardIteratorDest>::value_type value_type_output;
-
-		EASTL_INTERNAL_DISABLE_DEPRECATED()
-		const bool bHasTrivialMove = type_and<has_trivial_relocate<value_type_input>::value,
-												is_pointer<ForwardIterator>::value,
-												is_pointer<ForwardIteratorDest>::value,
-												is_same<value_type_input, value_type_output>::value>::value;
-		EASTL_INTERNAL_RESTORE_DEPRECATED()
-
-		return Internal::uninitialized_relocate_impl<bHasTrivialMove, IC>::do_move_commit(first, last, dest);
-	}
-
-	template <typename ForwardIterator, typename ForwardIteratorDest>
-	EASTL_REMOVE_AT_2024_APRIL inline ForwardIteratorDest uninitialized_relocate_abort(ForwardIterator first, ForwardIterator last, ForwardIteratorDest dest)
-	{
-		typedef typename eastl::iterator_traits<ForwardIterator>::iterator_category IC;
-		typedef typename eastl::iterator_traits<ForwardIterator>::value_type value_type_input;
-		typedef typename eastl::iterator_traits<ForwardIteratorDest>::value_type value_type_output;
-
-		EASTL_INTERNAL_DISABLE_DEPRECATED()
-		const bool bHasTrivialMove = type_and<has_trivial_relocate<value_type_input>::value,
-												is_pointer<ForwardIterator>::value,
-												is_pointer<ForwardIteratorDest>::value,
-												is_same<value_type_input, value_type_output>::value>::value;
-		EASTL_INTERNAL_RESTORE_DEPRECATED()
-
-		return Internal::uninitialized_relocate_impl<bHasTrivialMove, IC>::do_move_abort(first, last, dest);
-	}
-
-	/// uninitialized_relocate
-	///
-	/// See above for documentation.
-	///
-	template <typename ForwardIterator, typename ForwardIteratorDest>
-	EASTL_REMOVE_AT_2024_APRIL inline ForwardIteratorDest uninitialized_relocate(ForwardIterator first, ForwardIterator last, ForwardIteratorDest dest)
-	{
-		ForwardIteratorDest result = uninitialized_relocate_start(first, last, dest);
-		eastl::uninitialized_relocate_commit(first, last, dest);
-
-		return result;
-	}
-
-	EASTL_INTERNAL_RESTORE_DEPRECATED()
-
-
-
-
 	// uninitialized_copy
 	//
 	namespace Internal
@@ -868,40 +692,6 @@ namespace eastl
 	// will be default-initialized.
 	// This is the behavior we intend below.
 	EA_DISABLE_VC_WARNING(4345)
-	/// uninitialized_default_fill
-	/// 
-	/// Deprecated. Use uninitialized_value_construct for the std conforming alternative.
-	///
-	/// Default-constructs the elements in the destination range.
-	/// Returns void. It wouldn't be useful to return the end of the destination range,
-	/// as that is the same as the 'last' input parameter.
-	///
-	/// Declaration:
-	///    template <typename ForwardIterator, typename T>
-	///    void uninitialized_default_fill(ForwardIterator destinationFirst, ForwardIterator destinationLast);
-	///
-	template <typename ForwardIterator>
-	EASTL_REMOVE_AT_2024_APRIL inline void uninitialized_default_fill(ForwardIterator first, ForwardIterator last)
-	{
-		typedef typename eastl::iterator_traits<ForwardIterator>::value_type value_type;
-		ForwardIterator currentDest(first);
-
-	#if EASTL_EXCEPTIONS_ENABLED
-		try
-		{
-	#endif
-			for (; currentDest != last; ++currentDest)
-				::new (eastl::addressof(*currentDest)) value_type();
-	#if EASTL_EXCEPTIONS_ENABLED
-		}
-		catch (...)
-		{
-			for (; first < currentDest; ++first)
-				(*first).~value_type();
-			throw;
-		}
-	#endif
-	}
 
 	/// uninitialized_default_fill_n
 	///

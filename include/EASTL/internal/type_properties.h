@@ -132,16 +132,6 @@ namespace eastl
 		EA_CONSTEXPR bool is_signed_v = is_signed<T>::value;
 	#endif
 
-	#define EASTL_DECLARE_SIGNED(T)                                             \
-	namespace eastl{                                                            \
-		template <> struct EASTL_REMOVE_AT_2024_APRIL is_signed<T>                : public true_type{};    \
-		template <> struct EASTL_REMOVE_AT_2024_APRIL is_signed<const T>          : public true_type{};    \
-		template <> struct EASTL_REMOVE_AT_2024_APRIL is_signed<volatile T>       : public true_type{};    \
-		template <> struct EASTL_REMOVE_AT_2024_APRIL is_signed<const volatile T> : public true_type{};    \
-	}
-
-
-
 	///////////////////////////////////////////////////////////////////////
 	// is_unsigned
 	//
@@ -172,14 +162,6 @@ namespace eastl
 		template <class T>
 		EA_CONSTEXPR bool is_unsigned_v = is_unsigned<T>::value;
 	#endif
-
-	#define EASTL_DECLARE_UNSIGNED(T)                                             \
-	namespace eastl{                                                              \
-		template <> struct EASTL_REMOVE_AT_2024_APRIL is_unsigned<T>                : public true_type{};    \
-		template <> struct EASTL_REMOVE_AT_2024_APRIL is_unsigned<const T>          : public true_type{};    \
-		template <> struct EASTL_REMOVE_AT_2024_APRIL is_unsigned<volatile T>       : public true_type{};    \
-		template <> struct EASTL_REMOVE_AT_2024_APRIL is_unsigned<const volatile T> : public true_type{};    \
-	}
 
 	///////////////////////////////////////////////////////////////////////
 	// is_bounded_array
@@ -374,22 +356,6 @@ namespace eastl
 	///////////////////////////////////////////////////////////////////////
 	#define EASTL_TYPE_TRAIT_result_of_CONFORMANCE 1    // result_of is conforming.
 
-	template<typename> struct EASTL_REMOVE_AT_2024_APRIL result_of;
-
-	template<typename F, typename... ArgTypes>
-	struct EASTL_REMOVE_AT_2024_APRIL result_of<F(ArgTypes...)>
-		{ typedef decltype(eastl::declval<F>()(eastl::declval<ArgTypes>()...)) type; };
-
-
-	// result_of_t is the C++14 using typedef for typename result_of<T>::type.
-	// We provide a backwards-compatible means to access it through a macro for pre-C++11 compilers.
-	#if defined(EA_COMPILER_NO_TEMPLATE_ALIASES)
-		#define EASTL_RESULT_OF_T(T) typename result_of<T>::type
-	#else
-		template <typename T>
-		using result_of_t EASTL_REMOVE_AT_2024_APRIL = typename result_of<T>::type;
-		#define EASTL_RESULT_OF_T(T) result_of_t<T>
-	#endif
 
 
 	///////////////////////////////////////////////////////////////////////

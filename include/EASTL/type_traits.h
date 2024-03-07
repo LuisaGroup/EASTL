@@ -326,7 +326,6 @@ namespace eastl
 		argument_sink(Args&&...) {}
 	};
 
-
 	///////////////////////////////////////////////////////////////////////
 	// type_select
 	//
@@ -352,8 +351,6 @@ namespace eastl
 		using type_select_t EASTL_REMOVE_AT_2024_APRIL = typename type_select<bCondition, ConditionIsTrueType, ConditionIsFalseType>::type;
 	#endif
 
-
-
 	///////////////////////////////////////////////////////////////////////
 	// first_type_select
 	//
@@ -361,83 +358,6 @@ namespace eastl
 	//
 	template <typename T, typename = eastl::unused, typename = eastl::unused>
 	struct first_type_select { typedef T type; };
-
-
-
-	///////////////////////////////////////////////////////////////////////
-	// type_or
-	//
-	// Deprecated in C++17. Use disjunction<B ...> instead.
-	// Note type_or<bool ...> has boolean non-type template parameters
-	// whereas disjunction<B ...> has type template parameters (most commonly bool_constant<bool>).
-	//
-	// This is a utility class for creating composite type traits.
-	//
-	template <bool b1, bool b2, bool b3 = false, bool b4 = false, bool b5 = false>
-	struct EASTL_REMOVE_AT_2024_APRIL type_or;
-
-	template <bool b1, bool b2, bool b3, bool b4, bool b5>
-	struct EASTL_REMOVE_AT_2024_APRIL type_or { static const bool value = true; };
-
-	template <>
-	struct EASTL_REMOVE_AT_2024_APRIL type_or<false, false, false, false, false> { static const bool value = false; };
-
-
-
-	///////////////////////////////////////////////////////////////////////
-	// type_and
-	//
-	// Deprecated in C++17. Use conjunction<B ...> instead.
-	// Note type_and<bool ...> has boolean non-type template parameters
-	// whereas conjunction<B ...> has type template parameters (most commonly bool_constant<bool>).
-	//
-	// This is a utility class for creating composite type traits.
-	//
-	template <bool b1, bool b2, bool b3 = true, bool b4 = true, bool b5 = true>
-	struct EASTL_REMOVE_AT_2024_APRIL type_and;
-
-	template <bool b1, bool b2, bool b3, bool b4, bool b5>
-	struct EASTL_REMOVE_AT_2024_APRIL type_and{ static const bool value = false; };
-
-	template <>
-	struct EASTL_REMOVE_AT_2024_APRIL type_and<true, true, true, true, true>{ static const bool value = true; };
-
-
-
-	///////////////////////////////////////////////////////////////////////
-	// type_equal
-	//
-	// This is a utility class for creating composite type traits.
-	//
-	template <int b1, int b2>
-	struct EASTL_REMOVE_AT_2024_APRIL type_equal{ static const bool value = (b1 == b2); };
-
-
-
-	///////////////////////////////////////////////////////////////////////
-	// type_not_equal
-	//
-	// This is a utility class for creating composite type traits.
-	//
-	template <int b1, int b2>
-	struct EASTL_REMOVE_AT_2024_APRIL type_not_equal{ static const bool value = (b1 != b2); };
-
-
-
-	///////////////////////////////////////////////////////////////////////
-	// type_not
-	//
-	// Deprecated in C++17. Use negation<B> instead.
-	// Note type_not<bool> has a boolean non-type template parameter
-	// whereas negation<B> has a type template parameter (most commonly bool_constant<bool>).
-	//
-	// This is a utility class for creating composite type traits.
-	//
-	template <bool b>
-	struct EASTL_REMOVE_AT_2024_APRIL type_not{ static const bool value = true; };
-
-	template <>
-	struct EASTL_REMOVE_AT_2024_APRIL type_not<true>{ static const bool value = false; };
 
 
 
@@ -553,30 +473,6 @@ namespace eastl
 	#if EASTL_VARIABLE_TEMPLATES_ENABLED
 		template <typename B>
 		EASTL_CPP17_INLINE_VARIABLE EA_CONSTEXPR bool negation_v = negation<B>::value;
-	#endif
-
-
-
-	///////////////////////////////////////////////////////////////////////
-	// identity
-	//
-	// The purpose of this is typically to deal with non-deduced template
-	// contexts. See the C++11 Standard, 14.8.2.5 p5.
-	// Also: http://cppquiz.org/quiz/question/109?result=CE&answer=&did_answer=Answer
-	//
-	// Dinkumware has an identity, but adds a member function to it:
-	//     const T& operator()(const T& t) const{ return t; }
-	//
-	// NOTE(rparolin): Use 'eastl::type_identity' it was included in the C++20
-	// standard. This is a legacy EASTL type we continue to support for
-	// backwards compatibility. 
-	//
-	template <typename T>
-	struct EASTL_REMOVE_AT_2024_APRIL identity { using type = T; };
-
-	#if EASTL_VARIABLE_TEMPLATES_ENABLED
-		template <typename T>
-		using identity_t EASTL_REMOVE_AT_2024_APRIL = typename identity<T>::type;
 	#endif
 
 
@@ -817,9 +713,6 @@ namespace eastl
 	#if defined(_MSC_VER) && (_MSC_VER <= 1600) // VS2010 and earlier mistakenly report: "cannot add a reference to a zero-sized array." Actually they are allowed, but there's nothing we can do about it under VS2010 and earlier.
 	template <typename T> struct add_reference_impl<T[0]>{ typedef T    type; };
 	#endif
-
-	template <typename T> struct EASTL_REMOVE_AT_2024_APRIL add_reference { typedef typename add_reference_impl<T>::type type; };
-
 
 
 	///////////////////////////////////////////////////////////////////////

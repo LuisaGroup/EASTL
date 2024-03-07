@@ -1677,7 +1677,6 @@ namespace eastl
 	template <typename T>
 	struct owner_less< shared_ptr<T> >
 	{
-		EASTL_REMOVE_AT_2024_APRIL typedef bool result_type;
 
 		bool operator()(shared_ptr<T> const& a, shared_ptr<T> const& b) const
 			{ return a.owner_before(b); }
@@ -1692,8 +1691,6 @@ namespace eastl
 	template <typename T>
 	struct owner_less< weak_ptr<T> >
 	{
-		EASTL_REMOVE_AT_2024_APRIL typedef bool result_type;
-
 		bool operator()(weak_ptr<T> const& a, weak_ptr<T> const& b) const
 			{ return a.owner_before(b); }
 

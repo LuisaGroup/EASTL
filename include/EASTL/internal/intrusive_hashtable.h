@@ -422,9 +422,6 @@ namespace eastl
 		Hash hash_function() const
 			{ return mHash; }
 
-		EASTL_REMOVE_AT_2024_APRIL Equal equal_function() const    // Deprecated. Use key_eq() instead, as key_eq is what the new C++ standard 
-			{ return mEqual; }									  // has specified in its hashtable (unordered_*).
-
 		const key_equal& key_eq() const 
 			{ return mEqual; }
 
