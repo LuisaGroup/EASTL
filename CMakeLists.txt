@@ -70,6 +70,10 @@ if (WIN32 OR EASTL_ENABLE_MIMALLOC)
     target_link_libraries(EASTL PRIVATE mimalloc-static)
 endif ()
 
+if (WIN32)
+    target_link_options(EASTL PRIVATE "LINKER:/NATVIS:\"${CMAKE_CURRENT_SOURCE_DIR}/doc/EASTL.natvis\"")
+endif ()
+
 set_target_properties(EASTL PROPERTIES UNITY_BUILD ON)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
