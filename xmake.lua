@@ -25,8 +25,17 @@ on_load(function(target)
         })
     target:add("defines", "LC_EASTL_EXPORT=1", "EASTL_PROJECT=1")
 end)
-add_headerfiles("include/**.h")
-add_headerfiles("packages/EABase/include/Common/**.h")
+on_config(function(target)
+    if not is_mode("release") then
+        local _, ld = target:tool("ld")
+        if ld == "link" then
+            local flag = '-NATVIS:' .. path.join(os.scriptdir(), 'doc/EASTL.natvis')
+            target:add("ldflags", {flag}, {force = true, expand = false})
+            target:add("shflags", {flag}, {force = true, expand = false})
+        end 
+    end
+end)
+add_headerfiles("include/**.h", "packages/EABase/include/Common/**.h")
 add_files("source/*.cpp")
 if enable_custom_malloc then
     add_defines("EASTL_CUSTOM_MALLOC_ENABLED=1")
