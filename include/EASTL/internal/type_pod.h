@@ -865,8 +865,10 @@ namespace eastl
 		}
 
 	#if EASTL_VARIABLE_TEMPLATES_ENABLED
+		template<typename T, typename ... Args>
+		concept expr_constructible_v = requires(Args... args){	T(args...);	};
 		template <class T, class... Args>
-		EA_CONSTEXPR bool is_constructible_v = is_constructible<T, Args...>::value;
+		EA_CONSTEXPR bool is_constructible_v = is_constructible<T, Args...>::value || expr_constructible_v<T, Args...>;
     #endif
 
 
