@@ -6,7 +6,7 @@
 #ifndef EASTL_INTERNAL_SMART_PTR_H
 #define EASTL_INTERNAL_SMART_PTR_H
 
-
+#include <type_traits>
 #include <EABase/eabase.h>
 #include <EASTL/memory.h>
 #include <EASTL/type_traits.h>
