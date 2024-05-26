@@ -69,6 +69,14 @@ namespace eastl
 			void(*custom_free)(void* /*ptr*/),
 			void*(*custom_realloc)(void* /*ptr*/, size_t /*size*/)
 		);
+		struct CustomAlloc{
+			void*(*custom_malloc)(size_t /*size*/);
+			void*(*custom_aligned_malloc)(size_t /*alignment*/, size_t /*size*/);
+			void(*custom_free)(void* /*ptr*/);
+			void*(*custom_realloc)(void* /*ptr*/, size_t /*size*/);
+		};
+		static CustomAlloc get_custom_malloc();
+		
 	protected:
 		#if EASTL_NAME_ENABLED
 			const char* mpName; // Debug name, used to track memory.

@@ -75,6 +75,16 @@ namespace eastl
 		detail::_custom_realloc = custom_realloc;
 #endif
 	}
+	auto allocator::get_custom_malloc() -> CustomAlloc
+	{
+#ifndef EASTL_CUSTOM_MALLOC_ENABLED
+		// EASTL's custom malloc not enabled.
+		std::abort();
+#else
+		return CustomAlloc{detail::_custom_malloc, detail::_custom_aligned_malloc, detail::_custom_free,
+		                   detail::_custom_realloc};
+#endif
+	}
 
 	EASTL_API allocator* GetDefaultAllocator() { return detail::GetDefaultAllocatorRef(); }
 
