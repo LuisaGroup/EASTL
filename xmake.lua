@@ -1,9 +1,10 @@
 target("eastl")
 _config_project({
-    project_kind = "shared",
+    project_kind = "object",
     batch_size = 64,
     no_rtti = true
 })
+
 on_load(function(target)
     local function rela(p)
         return path.relative(path.absolute(p, os.scriptdir()), os.projectdir())
