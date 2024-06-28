@@ -13,7 +13,7 @@ on_load(function(target)
         public = true
     })
 
-    target:add("defines", "EA_PRAGMA_ONCE_SUPPORTED", "EASTL_ASSERT_ENABLED=0", "EA_HAVE_CPP11_CONTAINERS",
+    target:add("defines", "EA_PRAGMA_ONCE_SUPPORTED", "EA_HAVE_CPP11_CONTAINERS",
         "EA_HAVE_CPP11_ATOMIC", "EA_HAVE_CPP11_CONDITION_VARIABLE", "EA_HAVE_CPP11_MUTEX", "EA_HAVE_CPP11_THREAD",
         "EA_HAVE_CPP11_FUTURE", "EA_HAVE_CPP11_TYPE_TRAITS", "EA_HAVE_CPP11_TUPLES", "EA_HAVE_CPP11_REGEX",
         "EA_HAVE_CPP11_RANDOM", "EA_HAVE_CPP11_CHRONO", "EA_HAVE_CPP11_SCOPED_ALLOCATOR",
@@ -24,6 +24,9 @@ on_load(function(target)
         "EASTL_USER_DEFINED_ALLOCATOR", "EA_DLL", {
             public = true
         })
+    if is_mode("debug") or is_mode("releasedbg") then
+        target:add("defines", "EA_DEBUG", {public = true})
+    end
     target:add("defines", "LC_EASTL_EXPORT=1", "EASTL_PROJECT=1")
 end)
 on_config(function(target)
