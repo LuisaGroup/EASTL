@@ -27,20 +27,7 @@ namespace eastl
 		class CustomAllocSetOptions
 		{
 		public:
-			CustomAllocSetOptions()
-			{
-#ifdef EASTL_MIMALLOC_ENABLED
-				_custom_malloc = mi_malloc;
-				_custom_free = mi_free;
-				_custom_aligned_malloc = mi_aligned_alloc;
-				_custom_realloc = mi_realloc;
-#else
-				_custom_malloc = std::malloc;
-				_custom_free = std::free;
-				_custom_aligned_malloc = [](size_t align, size_t size) { return EASTL_ALIGNED_ALLOC(align, size); };
-				_custom_realloc = std::realloc;
-#endif
-			}
+			CustomAllocSetOptions() {}
 		};
 		static CustomAllocSetOptions _custom_malloc_options;
 #endif
