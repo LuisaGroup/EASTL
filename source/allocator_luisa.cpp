@@ -32,14 +32,14 @@ namespace eastl
 		static CustomAllocSetOptions _custom_malloc_options;
 #endif
 
-#ifdef EASTL_MIMALLOC_ENABLED
-		class MimallocSetOptions
-		{
-		public:
-			MimallocSetOptions() { mi_option_set(mi_option_allow_large_os_pages, 1); }
-		};
-		static MimallocSetOptions _mimalloc_set_options;
-#endif
+// #ifdef EASTL_MIMALLOC_ENABLED
+// 		class MimallocSetOptions
+// 		{
+// 		public:
+// 			MimallocSetOptions() { mi_option_set(mi_option_allow_large_os_pages, 1); }
+// 		};
+// 		static MimallocSetOptions _mimalloc_set_options;
+// #endif
 		inline static allocator*& GetDefaultAllocatorRef() noexcept
 		{
 			static allocator a;
