@@ -20,9 +20,10 @@ option(EASTL_ENABLE_MIMALLOC "Enable mimalloc" ${WIN32})
 # Library definition
 #-------------------------------------------------------------------------------------------
 file(GLOB EASTL_SOURCES "source/*.cpp")
-add_library(EASTL SHARED ${EASTL_SOURCES})
+add_library(EASTL-object OBJECT ${EASTL_SOURCES})
 
-target_compile_definitions(EASTL PUBLIC
+add_library(EASTL-interface INTERFACE)
+target_compile_definitions(EASTL-interface INTERFACE
         EA_PRAGMA_ONCE_SUPPORTED=1
         EA_HAVE_CPP11_CONTAINERS=1
         EA_HAVE_CPP11_ATOMIC=1
@@ -66,19 +67,20 @@ if (WIN32 OR EASTL_ENABLE_MIMALLOC)
         target_compile_definitions(mimalloc-static PUBLIC _CRT_SECURE_NO_WARNINGS=1)
     endif ()
     set_target_properties(mimalloc-static PROPERTIES UNITY_BUILD ON)
-    target_compile_definitions(EASTL PRIVATE EASTL_MIMALLOC_ENABLED=1 EASTL_PROJECT=1)
-    target_link_libraries(EASTL PRIVATE mimalloc-static)
+    target_compile_definitions(EASTL-object PRIVATE EASTL_MIMALLOC_ENABLED=1 EASTL_PROJECT=1)
+    target_link_libraries(EASTL-object PUBLIC mimalloc-static)
 endif ()
 
 if (WIN32)
-    target_link_options(EASTL PRIVATE "LINKER:/NATVIS:${CMAKE_CURRENT_SOURCE_DIR}/doc/EASTL.natvis")
+    target_link_options(EASTL-object PRIVATE "LINKER:/NATVIS:${CMAKE_CURRENT_SOURCE_DIR}/doc/EASTL.natvis")
 endif ()
 
-set_target_properties(EASTL PROPERTIES UNITY_BUILD ON)
+set_target_properties(EASTL-object PROPERTIES UNITY_BUILD ON)
+target_link_libraries(EASTL-object PUBLIC EASTL-interface)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
         CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15.0)
-    target_compile_options(EASTL PUBLIC -Wno-deprecated-builtins)
+    target_compile_options(EASTL-interface INTERFACE -Wno-deprecated-builtins)
 endif ()
 
 #-------------------------------------------------------------------------------------------
@@ -92,10 +94,10 @@ add_definitions(-DEASTL_OPENSOURCE=1)
 #-------------------------------------------------------------------------------------------
 # Include dirs
 #-------------------------------------------------------------------------------------------
-target_include_directories(EASTL PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+target_include_directories(EASTL-interface INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 #-------------------------------------------------------------------------------------------
 # Dependencies
 #-------------------------------------------------------------------------------------------
 add_subdirectory(packages/EABase)
-target_link_libraries(EASTL PUBLIC EABase)
+target_link_libraries(EASTL-interface INTERFACE EABase)
