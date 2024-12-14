@@ -75,7 +75,7 @@ if (WIN32)
     target_link_options(EASTL-object PRIVATE "LINKER:/NATVIS:${CMAKE_CURRENT_SOURCE_DIR}/doc/EASTL.natvis")
 endif ()
 
-set_target_properties(EASTL-object PROPERTIES UNITY_BUILD ON)
+set_target_properties(EASTL-object PROPERTIES UNITY_BUILD ON POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(EASTL-object PUBLIC EASTL-interface)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
