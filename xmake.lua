@@ -48,7 +48,6 @@ if enable_mimalloc then
     add_defines("EASTL_MIMALLOC_ENABLED=1")
     if os.exists("packages/mimalloc") then
         includes("packages/mimalloc/xmake.lua")
-        includes("packages/mimalloc/build_proj.lua")
         add_deps("mimalloc")
     end
 end
