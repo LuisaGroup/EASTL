@@ -5,3 +5,4 @@
 [submodule "packages/mimalloc"]
 	path = packages/mimalloc
 	url = https://github.com/LuisaGroup/mimalloc.git
+	branch = dev3
