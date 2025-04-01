@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------------------
 # Copyright (C) Electronic Arts Inc.  All rights reserved.
 #-------------------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.20)
 project(EASTL CXX)
 
 set(CMAKE_C_STANDARD 11)
