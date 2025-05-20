@@ -541,7 +541,7 @@ namespace eastl
 	}
 
 	template <typename T>
-	requires(eastl::is_default_constructible_v<T>)
+	requires(eastl::is_default_constructible_v<remove_extent_t<T>>)
 	inline typename eastl::enable_if<eastl::is_unbounded_array<T>::value, eastl::unique_ptr<T>>::type make_unique(
 	    size_t n)
 	{
