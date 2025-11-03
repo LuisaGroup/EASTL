@@ -41,10 +41,10 @@ on_config(function(target)
 end)
 add_headerfiles("include/**.h", "packages/EABase/include/Common/**.h")
 add_files("source/*.cpp")
-if enable_custom_malloc then
+if lc_eastl_enable_custom_malloc then
     add_defines("EASTL_CUSTOM_MALLOC_ENABLED=1")
 end
-if enable_mimalloc then
+if lc_eastl_enable_mimalloc then
     add_defines("EASTL_MIMALLOC_ENABLED=1")
     if os.exists("packages/mimalloc") then
         includes("packages/mimalloc/xmake.lua")
