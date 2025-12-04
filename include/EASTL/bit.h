@@ -6,6 +6,7 @@
 #define EASTL_BIT_H
 
 #include <EASTL/internal/config.h>
+#include <EASTL/numeric_limits.h>
 
 #if defined(EA_PRAGMA_ONCE_SUPPORTED)
 	#pragma once
