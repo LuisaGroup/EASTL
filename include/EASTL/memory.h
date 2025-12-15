@@ -201,8 +201,12 @@ namespace eastl
 		template <typename... Args>
 		void construct(Args&&... args)
 		{
+			if constexpr (eastl::is_constructible_v<value_type, Args&&...>) {
 			if(!mpValue)
 				mpValue = new (&mStorage) value_type(eastl::forward<Args>(args)...);
+			} else {
+				std::abort();
+			}
 		}
 
 		bool is_constructed() const EA_NOEXCEPT
@@ -331,8 +335,12 @@ namespace eastl
 					try
 					{
 				#endif
+					if constexpr (eastl::is_constructible_v<value_type, decltype(*first)>) {
 						for(; first != last; ++first, ++dest)
 							::new((void*)eastl::addressof(*dest)) value_type(*first);
+					} else {
+						std::abort();
+					}
 				#if EASTL_EXCEPTIONS_ENABLED
 					}
 					catch(...)
@@ -408,8 +416,12 @@ namespace eastl
 				try
 				{
 #endif
+				if constexpr (eastl::is_constructible_v<value_type, decltype(*first)>) {
 					for (; first != last; ++first, ++currentDest)
 						::new(static_cast<void*>(eastl::addressof(*currentDest))) value_type(*first);
+				} else {
+					std::abort();
+				}
 #if EASTL_EXCEPTIONS_ENABLED
 				}
 				catch (...)
@@ -515,8 +527,12 @@ namespace eastl
 					try
 					{
 				#endif
+					if constexpr (eastl::is_constructible_v<value_type, decltype(*first)>) {
 						for(; n > 0; --n, ++first, ++currentDest)
 							::new((void*)(eastl::addressof(*currentDest))) value_type(*first);
+					} else {
+						std::abort();
+					}
 				#if EASTL_EXCEPTIONS_ENABLED
 					}
 					catch(...)
@@ -587,8 +603,12 @@ namespace eastl
 				try
 				{
 			#endif
+				if constexpr (eastl::is_constructible_v<value_type, decltype(eastl::move(*first))>) {
 					for(; first != last; ++first, ++currentDest)
 						::new((void*)eastl::addressof(*currentDest)) value_type(eastl::move(*first)); // If value_type has a move constructor then it will be used here.
+				} else {
+					std::abort();
+				}
 			#if EASTL_EXCEPTIONS_ENABLED
 				}
 				catch(...)
@@ -717,8 +737,12 @@ namespace eastl
 			try
 			{
 		#endif
+			if constexpr (eastl::is_default_constructible_v<value_type>) {
 				for (; n > 0; --n, ++currentDest)
 					::new (eastl::addressof(*currentDest)) value_type();
+			} else {
+				std::abort();
+			}
 		#if EASTL_EXCEPTIONS_ENABLED
 			}
 			catch (...)
@@ -766,8 +790,12 @@ namespace eastl
 		try
 		{
 	#endif
+		if constexpr (eastl::is_default_constructible_v<value_type>) {
 			for (; currentDest != last; ++currentDest)
 				::new (eastl::addressof(*currentDest)) value_type;
+		} else {
+			std::abort();
+		}
 	#if EASTL_EXCEPTIONS_ENABLED
 		}
 		catch (...)
@@ -795,8 +823,12 @@ namespace eastl
 		try
 		{
 	#endif
+		if constexpr (eastl::is_default_constructible_v<value_type>) {
 			for (; n > 0; --n, ++currentDest)
 				::new (eastl::addressof(*currentDest)) value_type;
+		} else {
+			std::abort();
+		}
 			return currentDest;
 	#if EASTL_EXCEPTIONS_ENABLED
 		}
@@ -837,8 +869,12 @@ namespace eastl
 				try
 				{
 			#endif
+				if constexpr (is_constructible_v<value_type, decltype(value)>) {
 					for(; currentDest != last; ++currentDest)
 						::new((void*)eastl::addressof(*currentDest)) value_type(value);
+				} else {
+					std::abort();
+				}
 			#if EASTL_EXCEPTIONS_ENABLED
 				}
 				catch(...)
@@ -878,8 +914,12 @@ namespace eastl
 		try
 		{
 	#endif
+		if constexpr (eastl::is_default_constructible_v<value_type>) {
 			for (; currentDest != last; ++currentDest)
 				::new (eastl::addressof(*currentDest)) value_type();
+		} else {
+			std::abort();
+		}
 	#if EASTL_EXCEPTIONS_ENABLED
 		}
 		catch (...)
@@ -911,8 +951,12 @@ namespace eastl
 		try
 		{
 	#endif
+		if constexpr (eastl::is_default_constructible_v<value_type>) {
 			for (; n > 0; --n, ++currentDest)
 				::new (eastl::addressof(*currentDest)) value_type();
+		} else {
+			std::abort();
+		}
 			return currentDest;
 	#if EASTL_EXCEPTIONS_ENABLED
 		}
@@ -968,8 +1012,12 @@ namespace eastl
 				try
 				{
 			#endif
+				if constexpr (is_constructible_v<value_type, decltype(value)>) {
 					for(; n > 0; --n, ++currentDest)
 						::new((void*)eastl::addressof(*currentDest)) value_type(value);
+				} else {
+					std::abort();
+				}
 			#if EASTL_EXCEPTIONS_ENABLED
 				}
 				catch(...)
