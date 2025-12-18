@@ -131,7 +131,10 @@ namespace eastl
 				template <typename T>
 				static void CreateFunctor(FunctorStorageType& storage, T&& functor)
 				{
-					::new (GetFunctorPtr(storage)) Functor(eastl::forward<T>(functor));
+					if constexpr (eastl::is_constructible_v<Functor, decltype(eastl::forward<T>(functor))>)
+						::new (GetFunctorPtr(storage)) Functor(eastl::forward<T>(functor));
+					else
+						std::abort();
 				}
 
 				static void DestructFunctor(FunctorStorageType& storage) { GetFunctorPtr(storage)->~Functor(); }
@@ -140,13 +143,20 @@ namespace eastl
 				{
 					if constexpr (isCopyable)
 					{
-						::new (GetFunctorPtr(to)) Functor(*GetFunctorPtr(from));
+						if constexpr (eastl::is_constructible_v<Functor, decltype(*GetFunctorPtr(from))>)
+							::new (GetFunctorPtr(to)) Functor(*GetFunctorPtr(from));
+						else
+							std::abort();
 					}
 				}
 
 				static void MoveFunctor(FunctorStorageType& to, FunctorStorageType& from) EA_NOEXCEPT
 				{
-					::new (GetFunctorPtr(to)) Functor(eastl::move(*GetFunctorPtr(from)));
+					if constexpr (eastl::is_constructible_v<Functor, decltype(eastl::move(*GetFunctorPtr(from)))>)
+						::new (GetFunctorPtr(to)) Functor(eastl::move(*GetFunctorPtr(from)));
+					else
+						std::abort();
+					
 				}
 
 				static void* Manager(void* to,
@@ -239,7 +249,10 @@ namespace eastl
 					EASTL_ASSERT_MSG(func != nullptr, "Allocation failed!");
 #endif
 
-					::new (static_cast<void*>(func)) Functor(eastl::forward<T>(functor));
+					if constexpr (eastl::is_constructible_v<Functor, decltype(eastl::forward<T>(functor))>)
+						::new (static_cast<void*>(func)) Functor(eastl::forward<T>(functor));
+					else
+						std::abort();
 					GetFunctorPtrRef(storage) = func;
 				}
 
@@ -268,7 +281,10 @@ namespace eastl
 #else
 						EASTL_ASSERT_MSG(func != nullptr, "Allocation failed!");
 #endif
-						::new (static_cast<void*>(func)) Functor(*GetFunctorPtr(from));
+						if constexpr (eastl::is_constructible_v<Functor, decltype(*GetFunctorPtr(from))>)
+							::new (static_cast<void*>(func)) Functor(*GetFunctorPtr(from));
+						else
+							std::abort();
 						GetFunctorPtrRef(to) = func;
 					}
 				}
@@ -684,8 +700,8 @@ namespace eastl
 			typedef void* (*ManagerFuncPtr)(void*, void*, typename Base::ManagerOperations);
 			typedef R (*InvokeFuncPtr)(Args..., const FunctorStorageType&);
 
-			EA_DISABLE_GCC_WARNING(-Wreturn-type);
-			EA_DISABLE_CLANG_WARNING(-Wreturn-type);
+			EA_DISABLE_GCC_WARNING(-Wreturn - type);
+			EA_DISABLE_CLANG_WARNING(-Wreturn - type);
 			EA_DISABLE_VC_WARNING(4716); // 'function' must return a value
 			// We cannot assume that R is default constructible.
 			// This function is called only when the function object CANNOT be called because it is empty,
