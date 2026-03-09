@@ -201,11 +201,12 @@ namespace eastl
 		template <typename... Args>
 		void construct(Args&&... args)
 		{
-			if constexpr (eastl::is_constructible_v<value_type, Args&&...>) {
-			if(!mpValue)
-				mpValue = new (&mStorage) value_type(eastl::forward<Args>(args)...);
-			} else {
-				std::abort();
+			if(!mpValue){
+				if constexpr (eastl::is_constructible_v<value_type, Args&&...>) {
+					mpValue = new (&mStorage) value_type(eastl::forward<Args>(args)...);
+				} else {
+					std::abort();
+				}
 			}
 		}
 
@@ -339,7 +340,8 @@ namespace eastl
 						for(; first != last; ++first, ++dest)
 							::new((void*)eastl::addressof(*dest)) value_type(*first);
 					} else {
-						std::abort();
+						if (first != last) [[unlikely]]
+							std::abort(); // element non-copyable
 					}
 				#if EASTL_EXCEPTIONS_ENABLED
 					}
@@ -420,7 +422,8 @@ namespace eastl
 					for (; first != last; ++first, ++currentDest)
 						::new(static_cast<void*>(eastl::addressof(*currentDest))) value_type(*first);
 				} else {
-					std::abort();
+					if (first != last) [[unlikely]]
+						std::abort(); // element non-copyable
 				}
 #if EASTL_EXCEPTIONS_ENABLED
 				}
@@ -531,7 +534,8 @@ namespace eastl
 						for(; n > 0; --n, ++first, ++currentDest)
 							::new((void*)(eastl::addressof(*currentDest))) value_type(*first);
 					} else {
-						std::abort();
+						if (n > 0) [[unlikely]]
+							std::abort(); // element non-copyable
 					}
 				#if EASTL_EXCEPTIONS_ENABLED
 					}
@@ -607,7 +611,8 @@ namespace eastl
 					for(; first != last; ++first, ++currentDest)
 						::new((void*)eastl::addressof(*currentDest)) value_type(eastl::move(*first)); // If value_type has a move constructor then it will be used here.
 				} else {
-					std::abort();
+					if (first != last) [[unlikely]]
+						std::abort(); // element non-copyable
 				}
 			#if EASTL_EXCEPTIONS_ENABLED
 				}
@@ -741,7 +746,8 @@ namespace eastl
 				for (; n > 0; --n, ++currentDest)
 					::new (eastl::addressof(*currentDest)) value_type();
 			} else {
-				std::abort();
+				if (n > 0) [[unlikely]]
+					std::abort(); // element non-copyable ;
 			}
 		#if EASTL_EXCEPTIONS_ENABLED
 			}
@@ -794,7 +800,8 @@ namespace eastl
 			for (; currentDest != last; ++currentDest)
 				::new (eastl::addressof(*currentDest)) value_type;
 		} else {
-			std::abort();
+			if (currentDest != last) [[unlikely]]
+				std::abort(); // element non-copyable;
 		}
 	#if EASTL_EXCEPTIONS_ENABLED
 		}
@@ -827,7 +834,8 @@ namespace eastl
 			for (; n > 0; --n, ++currentDest)
 				::new (eastl::addressof(*currentDest)) value_type;
 		} else {
-			std::abort();
+			if (n > 0) [[unlikely]]
+				std::abort(); // element non-copyable;
 		}
 			return currentDest;
 	#if EASTL_EXCEPTIONS_ENABLED
@@ -873,7 +881,8 @@ namespace eastl
 					for(; currentDest != last; ++currentDest)
 						::new((void*)eastl::addressof(*currentDest)) value_type(value);
 				} else {
-					std::abort();
+					if (currentDest != last) [[unlikely]]
+						std::abort(); // element non-copyable;
 				}
 			#if EASTL_EXCEPTIONS_ENABLED
 				}
@@ -918,7 +927,8 @@ namespace eastl
 			for (; currentDest != last; ++currentDest)
 				::new (eastl::addressof(*currentDest)) value_type();
 		} else {
-			std::abort();
+			if (currentDest != last) [[unlikely]]
+				std::abort(); // element non-copyable;
 		}
 	#if EASTL_EXCEPTIONS_ENABLED
 		}
@@ -955,7 +965,8 @@ namespace eastl
 			for (; n > 0; --n, ++currentDest)
 				::new (eastl::addressof(*currentDest)) value_type();
 		} else {
-			std::abort();
+			if (n > 0) [[unlikely]]
+				std::abort(); // element non-copyable;
 		}
 			return currentDest;
 	#if EASTL_EXCEPTIONS_ENABLED
@@ -1016,7 +1027,8 @@ namespace eastl
 					for(; n > 0; --n, ++currentDest)
 						::new((void*)eastl::addressof(*currentDest)) value_type(value);
 				} else {
-					std::abort();
+					if (n > 0) [[unlikely]]
+						std::abort();
 				}
 			#if EASTL_EXCEPTIONS_ENABLED
 				}
