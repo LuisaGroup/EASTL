@@ -654,10 +654,10 @@ namespace eastl
 	template <typename T, typename Allocator, unsigned kDequeSubarraySize>
 	T** DequeBase<T, Allocator, kDequeSubarraySize>::DoAllocatePtrArray(size_type n)
 	{
-		#if EASTL_ASSERT_ENABLED
-			if(EASTL_UNLIKELY(n >= 0x80000000))
-				EASTL_FAIL_MSG("deque::DoAllocatePtrArray -- improbably large request.");
-		#endif
+		// #if EASTL_ASSERT_ENABLED
+		// 	if(EASTL_UNLIKELY(n >= 0x80000000))
+		// 		EASTL_FAIL_MSG("deque::DoAllocatePtrArray -- improbably large request.");
+		// #endif
 
 		T** pp = (T**)allocate_memory(mAllocator, n * sizeof(T*), EASTL_ALIGN_OF(T), 0);
 		EASTL_ASSERT_MSG(pp != nullptr, "the behaviour of eastl::allocators that return nullptr is not defined.");

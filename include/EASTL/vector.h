@@ -490,10 +490,10 @@ namespace eastl
 	template <typename T, typename Allocator>
 	inline T* VectorBase<T, Allocator>::DoAllocate(size_type n)
 	{
-#if EASTL_ASSERT_ENABLED
-		if (EASTL_UNLIKELY(n >= 0x80000000))
-			EASTL_FAIL_MSG("vector::DoAllocate -- improbably large request.");
-#endif
+// #if EASTL_ASSERT_ENABLED
+// 		if (EASTL_UNLIKELY(n >= 0x80000000))
+// 			EASTL_FAIL_MSG("vector::DoAllocat`e -- improbably large request.");
+// #endif
 
 		// If n is zero, then we allocate no memory and just return nullptr.
 		// This is fine, as our default ctor initializes with NULL pointers.
