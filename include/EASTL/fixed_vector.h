@@ -252,9 +252,13 @@ namespace eastl
 
 		// The following is currently identical to the fixed_vector(const this_type& x) code above. If it stays that
 		// way then we may want to make a shared implementation.
+		// LC-FIX: must initialize before has_overflowed() probe (base ctor leaves mpBegin=NULL → false-positive overflow).
+		mpBegin = mpEnd = (value_type*)&mBuffer.buffer[0];
+		internalCapacityPtr() = mpBegin + nodeCount;
 		if(has_overflowed() && x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator())) {
 			mpBegin = x.mpBegin;
 			mpEnd = x.mpEnd;
+			internalCapacityPtr() = x.internalCapacityPtr();
 		} else{
 			get_allocator().copy_overflow_allocator(x.get_allocator());
 
@@ -262,8 +266,6 @@ namespace eastl
 				get_allocator().set_name(x.get_allocator().get_name());
 			#endif
 
-			mpBegin = mpEnd = (value_type*)&mBuffer.buffer[0];
-			internalCapacityPtr() = mpBegin + nodeCount;
 			base_type::template DoAssign<move_iterator<iterator>, true>(eastl::make_move_iterator(x.begin()), eastl::make_move_iterator(x.end()), false_type());
 			if constexpr (!std::is_trivially_destructible_v<T>){
 				for(auto ptr = x.mpBegin; ptr != x.mpEnd; ++ptr){
@@ -374,6 +376,7 @@ namespace eastl
 			if(has_overflowed() && x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator())) {
 				mpBegin = x.mpBegin;
 				mpEnd = x.mpEnd;
+				internalCapacityPtr() = x.internalCapacityPtr();
 			} else{
 				clear();
 
