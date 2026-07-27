@@ -56,27 +56,28 @@ namespace eastl
 		allocator(const allocator& x, const char* pName);
 
 		allocator& operator=(const allocator& x);
-		void* allocate(size_t n, int flags = 0);
-		void* allocate(size_t n, size_t alignment, size_t offset, int flags = 0);
-		void* reallocate(void* originPtr, size_t n);
-		void  deallocate(void* p, size_t n);
 
-		const char* get_name() const;
-		void        set_name(const char* pName);
-		static void set_custom_malloc(
+			void* allocate(size_t n, int flags = 0);
+			void* allocate(size_t n, size_t alignment, size_t offset, int flags = 0);
+			void* reallocate(void* originPtr, size_t n);
+			void  deallocate(void* p, size_t n);
+
+			const char* get_name() const;
+			void        set_name(const char* pName);
+			static void set_custom_malloc(
 			void*(*custom_malloc)(size_t /*size*/),
 			void*(*custom_aligned_malloc)(size_t /*alignment*/, size_t /*size*/),
 			void(*custom_free)(void* /*ptr*/),
 			void*(*custom_realloc)(void* /*ptr*/, size_t /*size*/)
-		);
-		struct CustomAlloc{
+			);
+			struct CustomAlloc{
 			void*(*custom_malloc)(size_t /*size*/);
 			void*(*custom_aligned_malloc)(size_t /*alignment*/, size_t /*size*/);
 			void(*custom_free)(void* /*ptr*/);
 			void*(*custom_realloc)(void* /*ptr*/, size_t /*size*/);
-		};
-		static CustomAlloc get_custom_malloc();
-		
+			};
+			static CustomAlloc get_custom_malloc();
+
 	protected:
 		#if EASTL_NAME_ENABLED
 			const char* mpName; // Debug name, used to track memory.
@@ -84,7 +85,37 @@ namespace eastl
 	};
 
 	bool operator==(const allocator& a, const allocator& b);
+#if !defined(EA_COMPILER_HAS_THREE_WAY_COMPARISON)
 	bool operator!=(const allocator& a, const allocator& b);
+#endif
+
+
+	/// dummy_allocator
+	///
+	/// Defines an allocator which does nothing. It returns NULL from allocate calls.
+	///
+	class EASTL_API dummy_allocator
+	{
+	public:
+		EASTL_ALLOCATOR_EXPLICIT dummy_allocator(const char* = NULL) { }
+		dummy_allocator(const dummy_allocator&) { }
+		dummy_allocator(const dummy_allocator&, const char*) { }
+
+		dummy_allocator& operator=(const dummy_allocator&) { return *this; }
+
+		void* allocate(size_t, int = 0)                 { return NULL; }
+		void* allocate(size_t, size_t, size_t, int = 0) { return NULL; }
+		void  deallocate(void*, size_t)                 { }
+
+		const char* get_name() const      { return ""; }
+		void        set_name(const char*) { }
+	};
+
+	inline bool operator==(const dummy_allocator&, const dummy_allocator&) { return true;  }
+#if !defined(EA_COMPILER_HAS_THREE_WAY_COMPARISON)
+	inline bool operator!=(const dummy_allocator&, const dummy_allocator&) { return false; }
+#endif
+
 
 	/// Defines a static default allocator which is constant across all types.
 	/// This is different from get_default_allocator, which is is bound at
@@ -199,8 +230,8 @@ namespace eastl
 			#if EASTL_NAME_ENABLED
 				return mpName;
 			#else
-				return EASTL_ALLOCATOR_DEFAULT_NAME;
-			#endif
+					return EASTL_ALLOCATOR_DEFAULT_NAME;
+				#endif
 		}
 
 
@@ -284,14 +315,15 @@ namespace eastl
 			return true; // All allocators are considered equal, as they merely use global new/delete.
 		}
 
-
+#if !defined(EA_COMPILER_HAS_THREE_WAY_COMPARISON)
 		inline bool operator!=(const allocator&, const allocator&)
 		{
 			return false; // All allocators are considered equal, as they merely use global new/delete.
 		}
-
+#endif
 
 	} // namespace eastl
+
 
 #else
 

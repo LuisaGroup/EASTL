@@ -7,7 +7,8 @@
 #define EASTL_FIXED_SUBSTRING_H
 
 
-#include <EASTL/string.h>
+// Note: fixed_substring requires basic_string which was previously provided
+// by <EASTL/string.h>. That header is no longer part of this distribution.
 
 #if defined(EA_PRAGMA_ONCE_SUPPORTED)
 	#pragma once // Some compilers (e.g. VC++) benefit significantly from using this. We've measured 3-4% build speed improvements in apps as a result.
