@@ -772,7 +772,7 @@ namespace eastl
 			class... Args,
 			enable_if_t<conjunction_v<meta::duplicate_type_check<T, Types...>, is_constructible<T, Args...>>, bool> = true>
 			EA_CPP14_CONSTEXPR explicit variant(in_place_type_t<T>, Args&&... args)
-			: variant(in_place_index<meta::get_type_index_v<T, Types...>>, eastl::forward<Args>(args)...)
+			: variant(in_place<meta::get_type_index_v<T, Types...>>, eastl::forward<Args>(args)...)
 		{}
 
 		template <
@@ -781,7 +781,7 @@ namespace eastl
 			class... Args,
 			enable_if_t<conjunction_v<meta::duplicate_type_check<T, Types...>, is_constructible<T, Args...>>, bool> = true>
 			EA_CPP14_CONSTEXPR explicit variant(in_place_type_t<T>, std::initializer_list<U> il, Args&&... args)
-			: variant(in_place_index<meta::get_type_index_v<T, Types...>>, il, eastl::forward<Args>(args)...)
+			: variant(in_place<meta::get_type_index_v<T, Types...>>, il, eastl::forward<Args>(args)...)
 		{}
 
 		template <size_t I,
