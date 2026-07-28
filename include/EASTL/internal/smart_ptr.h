@@ -217,7 +217,7 @@ namespace eastl
 			auto header_size = max<size_t>(alignof(T), sizeof(size_t));
 			auto header_ptr = reinterpret_cast<size_t*>(reinterpret_cast<size_t>(p) - header_size);
 			auto ele_size = *header_ptr;
-			auto alloc_size = header_size * ele_size * sizeof(T);
+			auto alloc_size = header_size + ele_size * sizeof(T);
 			if constexpr (!std::is_trivially_constructible_v<T>)
 			{
 				auto end = p + ele_size;
@@ -260,7 +260,7 @@ namespace eastl
 			auto header_size = sizeof(size_t);
 			auto header_ptr = reinterpret_cast<size_t*>(reinterpret_cast<size_t>(p) - header_size);
 			auto ele_size = *header_ptr;
-			auto alloc_size = header_size * ele_size;
+			auto alloc_size = header_size + ele_size;
 			eastl::GetDefaultAllocator()->deallocate(header_ptr, alloc_size);
 		} // We don't seem to have much choice but to cast to a scalar type.
 	};
@@ -276,7 +276,7 @@ namespace eastl
 			auto header_size = sizeof(size_t);
 			auto header_ptr = reinterpret_cast<size_t*>(reinterpret_cast<size_t>(p) - header_size);
 			auto ele_size = *header_ptr;
-			auto alloc_size = header_size * ele_size;
+			auto alloc_size = header_size + ele_size;
 			eastl::GetDefaultAllocator()->deallocate(header_ptr, alloc_size);
 		} // We don't seem to have much choice but to cast to a scalar type.
 	};
@@ -298,7 +298,7 @@ namespace eastl
 			auto header_size = max<size_t>(alignof(T), sizeof(size_t));
 			auto header_ptr = reinterpret_cast<size_t*>(reinterpret_cast<size_t>(p) - header_size);
 			auto ele_size = *header_ptr;
-			auto alloc_size = header_size * ele_size * sizeof(T);
+			auto alloc_size = header_size + ele_size * sizeof(T);
 			if constexpr (!std::is_trivially_constructible_v<T>)
 			{
 				auto end = p + ele_size;
@@ -322,7 +322,7 @@ namespace eastl
 			auto header_size = sizeof(size_t);
 			auto header_ptr = reinterpret_cast<size_t*>(reinterpret_cast<size_t>(p) - header_size);
 			auto ele_size = *header_ptr;
-			auto alloc_size = header_size * ele_size;
+			auto alloc_size = header_size + ele_size;
 			eastl::GetDefaultAllocator()->deallocate(header_ptr, alloc_size);
 		} // We don't seem to have much choice but to cast to a scalar type.
 	};

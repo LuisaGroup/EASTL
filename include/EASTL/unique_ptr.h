@@ -527,24 +527,37 @@ namespace eastl
 	///     - You need to construct the unique_ptr with a raw pointer.
 	///     - You need to specify a custom deleter.
 	///
-	/// Note: This function uses global new T by default to create the ptr instance, as per 
-	/// the C++11 Standard make_shared_ptr.
+/// Note: This function uses eastl::GetDefaultAllocator() to allocate the ptr instance.
+		/// The default_delete will deallocate via the same allocator, ensuring consistency.
 	///
 	/// Example usage:
 	///     struct Test{ Test(int, int){} };
 	///     auto p = make_unique<Test>(1, 2);
 	///
 	///     auto pArray = make_unique<Test[]>(4);
-	///
 	template <typename T, typename... Args>
 	inline typename eastl::enable_if<!eastl::is_array<T>::value, eastl::unique_ptr<T>>::type make_unique(Args&&... args)
-		{ return unique_ptr<T>(new T(eastl::forward<Args>(args)...)); }
+	{
+		void* const mem = eastl::GetDefaultAllocator()->allocate(sizeof(T));
+		T* const p = ::new(mem) T(eastl::forward<Args>(args)...);
+		return unique_ptr<T>(p);
+	}
 
 	template <typename T>
 	inline typename eastl::enable_if<eastl::is_unbounded_array<T>::value, eastl::unique_ptr<T>>::type make_unique(size_t n)
 	{
 		typedef typename eastl::remove_extent<T>::type TBase;
-		return unique_ptr<T>(new TBase[n]);
+		auto header_size = eastl::max<size_t>(alignof(TBase), sizeof(size_t));
+		auto alloc_size = header_size + n * sizeof(TBase);
+		void* const mem = eastl::GetDefaultAllocator()->allocate(alloc_size);
+		// Write element count into header
+		*static_cast<size_t*>(mem) = n;
+		// Compute aligned start of array
+		TBase* const p = reinterpret_cast<TBase*>(static_cast<char*>(mem) + header_size);
+		// Default-construct each element (standard make_unique<T[]>(n) value-initializes)
+		for (size_t i = 0; i < n; ++i)
+			::new(&p[i]) TBase();
+		return unique_ptr<T>(p);
 	}
 
 	// It's not possible to create a unique_ptr for arrays of a known bound (e.g. int[4] as opposed to int[]).
