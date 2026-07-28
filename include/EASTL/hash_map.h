@@ -5,9 +5,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // This file is based on the TR1 (technical report 1) reference implementation
 // of the unordered_set/unordered_map C++ classes as of about 4/2005. Most likely
-// many or all C++ library vendors' implementations of this classes will be 
+// many or all C++ library vendors' implementations of this classes will be
 // based off of the reference version and so will look pretty similar to this
-// file as well as other vendors' versions. 
+// file as well as other vendors' versions.
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -19,9 +19,6 @@
 #include <EASTL/internal/hashtable.h>
 #include <EASTL/functional.h>
 #include <EASTL/utility.h>
-#if EASTL_EXCEPTIONS_ENABLED
-#include <stdexcept>
-#endif
 
 #if defined(EA_PRAGMA_ONCE_SUPPORTED)
 	#pragma once // Some compilers (e.g. VC++) benefit significantly from using this. We've measured 3-4% build speed improvements in apps as a result.
@@ -67,7 +64,7 @@ namespace eastl
 	/// hash_map
 	///
 	/// Implements a hash_map, which is a hashed associative container.
-	/// Lookups are O(1) (that is, they are fast) but the container is 
+	/// Lookups are O(1) (that is, they are fast) but the container is
 	/// not sorted. Note that lookups are only O(1) if the hash table
 	/// is well-distributed (non-colliding). The lookup approaches
 	/// O(n) behavior as the table becomes increasingly poorly distributed.
@@ -77,39 +74,17 @@ namespace eastl
 	/// call set_max_load_factor with a very high value such as 100000.f.
 	///
 	/// bCacheHashCode
-	/// We provide the boolean bCacheHashCode template parameter in order 
-	/// to allow the storing of the hash code of the key within the map. 
-	/// When this option is disabled, the rehashing of the table will 
-	/// call the hash function on the key. Setting bCacheHashCode to true 
+	/// We provide the boolean bCacheHashCode template parameter in order
+	/// to allow the storing of the hash code of the key within the map.
+	/// When this option is disabled, the rehashing of the table will
+	/// call the hash function on the key. Setting bCacheHashCode to true
 	/// is useful for cases whereby the calculation of the hash value for
 	/// a contained object is very expensive.
 	///
-	/// Heterogeneous lookup, insertion and erasure
-	/// See
-	/// https://en.cppreference.com/w/cpp/utility/functional#Transparent_function_objects
-	/// https://en.cppreference.com/w/cpp/utility/functional/less_void
-	/// https://en.cppreference.com/w/cpp/container/unordered_map/find
-	/// 
-	/// You can avoid creating key objects when calling member functions
-	/// with a key_type parameter by declaring the container with a
-	/// transparent hash and comparison type (eg. equal_to<void>) and
-	/// passing objects to be passed to these function objects.
-	/// 
-	/// This optimization is supported for member functions that take a
-	/// key_type parameter, ie. heterogeneous lookup, insertion and erasure,
-	/// not just find().
-	/// 
-	/// Using transparent types is safer than using find_as because the
-	/// latter requires the user specify hash and equality function objects
-	/// which must have the same semantics as the container's hash and
-	/// equality objects, otherwise the behaviour is undefined.
-	/// 
 	/// find_as
-	/// Note: Prefer heterogeneous lookup (see above).
-	/// 
 	/// In order to support the ability to have a hashtable of strings but
-	/// be able to do efficiently lookups via char pointers (i.e. so they 
-	/// aren't converted to string objects), we provide the find_as 
+	/// be able to do efficiently lookups via char pointers (i.e. so they
+	/// aren't converted to string objects), we provide the find_as
 	/// function. This function allows you to do a find with a key of a
 	/// type other than the hashtable key type.
 	///
@@ -121,16 +96,16 @@ namespace eastl
 	///     hash_map<string, int> hashMap;
 	///     i = hashMap.find_as("hello", hash<char*>(), equal_to<>());
 	///
-	template <typename Key, typename T, typename Hash = eastl::hash<Key>, typename Predicate = eastl::equal_to<Key>, 
+	template <typename Key, typename T, typename Hash = eastl::hash<Key>, typename Predicate = eastl::equal_to<Key>,
 			  typename Allocator = EASTLAllocatorType, bool bCacheHashCode = false>
 	class hash_map
 		: public hashtable<Key, eastl::pair<const Key, T>, Allocator, eastl::use_first<eastl::pair<const Key, T> >, Predicate,
 							Hash, mod_range_hashing, default_ranged_hash, prime_rehash_policy, bCacheHashCode, true, true>
 	{
 	public:
-		typedef hashtable<Key, eastl::pair<const Key, T>, Allocator, 
-						  eastl::use_first<eastl::pair<const Key, T> >, 
-						  Predicate, Hash, mod_range_hashing, default_ranged_hash, 
+		typedef hashtable<Key, eastl::pair<const Key, T>, Allocator,
+						  eastl::use_first<eastl::pair<const Key, T> >,
+						  Predicate, Hash, mod_range_hashing, default_ranged_hash,
 						  prime_rehash_policy, bCacheHashCode, true, true>        base_type;
 		typedef hash_map<Key, T, Hash, Predicate, Allocator, bCacheHashCode>      this_type;
 		typedef typename base_type::size_type                                     size_type;
@@ -144,9 +119,6 @@ namespace eastl
 		typedef typename base_type::const_iterator                                const_iterator;
 
 		using base_type::insert;
-
-		static_assert(!is_const<value_type>::value, "hash_map<T> value_type must be non-const.");
-		static_assert(!is_volatile<value_type>::value, "hash_map<T> value_type must be non-volatile.");
 
 	public:
 		/// hash_map
@@ -164,9 +136,9 @@ namespace eastl
 		///
 		/// Constructor which creates an empty container with allocator.
 		///
-			hash_map(const allocator_type& allocator)
-				: base_type(0, Hash(), mod_range_hashing(), default_ranged_hash(),
-							Predicate(), eastl::use_first<eastl::pair<const Key, T> >(), allocator)
+		explicit hash_map(const allocator_type& allocator)
+			: base_type(0, Hash(), mod_range_hashing(), default_ranged_hash(),
+						Predicate(), eastl::use_first<eastl::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
@@ -175,28 +147,22 @@ namespace eastl
 		/// hash_map
 		///
 		/// Constructor which creates an empty container, but start with nBucketCount buckets.
-		/// We default to a small nBucketCount value, though the user really should manually 
+		/// We default to a small nBucketCount value, though the user really should manually
 		/// specify an appropriate value in order to prevent memory from being reallocated.
 		///
-		/// note: difference in explicit keyword from the standard.
-		explicit hash_map(size_type nBucketCount, const Hash& hashFunction = Hash(), 
+		explicit hash_map(size_type nBucketCount, const Hash& hashFunction = Hash(),
 						  const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MAP_DEFAULT_ALLOCATOR)
-			: base_type(nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
+			: base_type(nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(),
 						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
-
-		// hash_map(size_type nBucketCount, const allocator_type& allocator)
-		// hash_map(size_type nBucketCount, const Hash& hashFunction, const allocator_type& allocator)
 
 
 		hash_map(const this_type& x)
 		  : base_type(x)
 		{
 		}
-
-		// hash_map(const this_type& x, const allocator_type& allocator)
 
 
 		hash_map(this_type&& x)
@@ -213,47 +179,32 @@ namespace eastl
 
 		/// hash_map
 		///
-		/// initializer_list-based constructor. 
+		/// initializer_list-based constructor.
 		/// Allows for initializing with brace values (e.g. hash_map<int, char*> hm = { {3,"c"}, {4,"d"}, {5,"e"} }; )
-		///     
-		hash_map(std::initializer_list<value_type> ilist, size_type nBucketCount = 0, const Hash& hashFunction = Hash(), 
+		///
+		hash_map(std::initializer_list<value_type> ilist, size_type nBucketCount = 0, const Hash& hashFunction = Hash(),
 				   const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MAP_DEFAULT_ALLOCATOR)
-			: base_type(ilist.begin(), ilist.end(), nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
+			: base_type(ilist.begin(), ilist.end(), nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(),
 						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
 
-		hash_map(std::initializer_list<value_type> ilist, const allocator_type& allocator)
-			: base_type(ilist.begin(), ilist.end(), 0, Hash(), mod_range_hashing(), default_ranged_hash(), Predicate(), eastl::use_first<eastl::pair<const Key, T> >(), allocator)
-		{
-			// Empty
-		}
-
-		// hash_map(std::initializer_list<value_type> ilist, size_type nBucketCount, const allocator_type& allocator)
-
-		// hash_map(std::initializer_list<value_type> ilist, size_type nBucketCount, const Hash& hashFunction,
-		// 	const allocator_type& allocator)
 
 		/// hash_map
 		///
-		/// An input bucket count of <= 1 causes the bucket count to be equal to the number of 
+		/// An input bucket count of <= 1 causes the bucket count to be equal to the number of
 		/// elements in the input range.
 		///
 		template <typename ForwardIterator>
-		hash_map(ForwardIterator first, ForwardIterator last, size_type nBucketCount = 0, const Hash& hashFunction = Hash(), 
+		hash_map(ForwardIterator first, ForwardIterator last, size_type nBucketCount = 0, const Hash& hashFunction = Hash(),
 				 const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MAP_DEFAULT_ALLOCATOR)
-			: base_type(first, last, nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
+			: base_type(first, last, nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(),
 						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
 
-		// template <typename ForwardIterator>
-		// hash_map(ForwardIterator first, ForwardIterator last, size_type nBucketCount, const allocator_type& allocator)
-
-		// template <typename ForwardIterator>
-		// hash_map(ForwardIterator first, ForwardIterator last, size_type nBucketCount, const Hash& hashFunction, const allocator_type& allocator)
 
 		this_type& operator=(const this_type& x)
 		{
@@ -275,8 +226,8 @@ namespace eastl
 
 		/// insert
 		///
-		/// This is an extension to the C++ standard. We insert a default-constructed 
-		/// element with the given key. The reason for this is that we can avoid the 
+		/// This is an extension to the C++ standard. We insert a default-constructed
+		/// element with the given key. The reason for this is that we can avoid the
 		/// potentially expensive operation of creating and/or copying a mapped_type
 		/// object on the stack.
 		insert_return_type insert(const key_type& key)
@@ -284,28 +235,48 @@ namespace eastl
 			return base_type::DoInsertKey(true_type(), key);
 		}
 
+		T& at(const key_type& k)
+		{
+			iterator it = base_type::find(k);
+
+			if (it == base_type::end())
+			{
+				#if EASTL_EXCEPTIONS_ENABLED
+					// throw exeption if exceptions enabled
+					throw std::out_of_range("invalid hash_map<K, T> key");
+				#else
+					// assert false if asserts enabled
+					EASTL_ASSERT_MSG(false, "invalid hash_map<K, T> key");
+				#endif
+			}
+			// undefined behaviour if exceptions and asserts are disabled and it == end()
+			return it->second;
+		}
+
+
+		const T& at(const key_type& k) const
+		{
+			const_iterator it = base_type::find(k);
+
+			if (it == base_type::end())
+			{
+				#if EASTL_EXCEPTIONS_ENABLED
+					// throw exeption if exceptions enabled
+					throw std::out_of_range("invalid hash_map<K, T> key");
+				#else
+					// assert false if asserts enabled
+					EASTL_ASSERT_MSG(false, "invalid hash_map<K, T> key");
+				#endif
+			}
+			// undefined behaviour if exceptions and asserts are disabled and it == end()
+			return it->second;
+		}
+
+
 		insert_return_type insert(key_type&& key)
 		{
 			return base_type::DoInsertKey(true_type(), eastl::move(key));
 		}
-
-		template <typename P, eastl::enable_if_t<eastl::is_constructible_v<value_type, P&&>, bool> = true>
-		insert_return_type insert(P&& otherValue)
-		{
-			return base_type::emplace(eastl::forward<P>(otherValue));
-		}
-
-		T& at(const key_type& k) { return DoAt(k); }
-
-		const T& at(const key_type& k) const { return DoAt(k); }
-
-		template<typename KX, typename HX = Hash, typename PX = Predicate,
-			eastl::enable_if_t<eastl::detail::is_transparent_comparison_v<HX> && eastl::detail::is_transparent_comparison_v<PX>, bool> = true>
-		T& at(const KX& k) { return DoAt(k); }
-
-		template<typename KX, typename HX = Hash, typename PX = Predicate,
-			eastl::enable_if_t<eastl::detail::is_transparent_comparison_v<HX>&& eastl::detail::is_transparent_comparison_v<PX>, bool> = true>
-		const T& at(const KX& k) const { return DoAt(k); }
 
 
 		mapped_type& operator[](const key_type& key)
@@ -325,13 +296,6 @@ namespace eastl
 			return (*base_type::DoInsertKey(true_type(), eastl::move(key)).first).second;
 		}
 
-		template <typename KX, typename... Args, typename HX = Hash, typename PX = Predicate,
-			eastl::enable_if_t<eastl::detail::is_transparent_comparison_v<HX> && eastl::detail::is_transparent_comparison_v<PX>, bool> = true>
-		mapped_type& operator[](KX&& key)
-		{
-			return try_emplace(eastl::forward<KX>(key)).first->second;
-		}
-
 		// try_emplace API added in C++17
 		template <class... Args>
 		inline insert_return_type try_emplace(const key_type& k, Args&&... args)
@@ -342,13 +306,6 @@ namespace eastl
 		template <class... Args>
 		inline insert_return_type try_emplace(key_type&& k, Args&&... args) {
 			return try_emplace_forwarding(eastl::move(k), eastl::forward<Args>(args)...);
-		}
-
-		template <typename KX, typename... Args, typename HX = Hash, typename PX = Predicate,
-			eastl::enable_if_t<!eastl::is_convertible_v<KX&&, const_iterator> && !eastl::is_convertible_v<KX&&, iterator>
-			&& eastl::detail::is_transparent_comparison_v<HX> && eastl::detail::is_transparent_comparison_v<PX>, bool> = true>
-		inline insert_return_type try_emplace(KX&& k, Args&&... args) {
-			return try_emplace_forwarding(eastl::forward<KX>(k), eastl::forward<Args>(args)...);
 		}
 
 		template <class... Args>
@@ -365,53 +322,7 @@ namespace eastl
 			return base_type::DoGetResultIterator(true_type(), result);
 		}
 
-		template <typename KX, typename... Args, typename HX = Hash, typename PX = Predicate,
-			eastl::enable_if_t<eastl::detail::is_transparent_comparison_v<HX>&& eastl::detail::is_transparent_comparison_v<PX>, bool> = true>
-		inline iterator try_emplace(const_iterator, KX&& k, Args&&... args) {
-			// Currently, the first parameter is ignored.
-			insert_return_type result = try_emplace(eastl::forward<KX>(k), eastl::forward<Args>(args)...);
-			return base_type::DoGetResultIterator(true_type(), result);
-		}
-
 	private:
-		template<typename KX>
-		T& DoAt(const KX& k)
-		{
-			iterator it = base_type::find(k);
-
-			if (it == base_type::end())
-			{
-#if EASTL_EXCEPTIONS_ENABLED
-				// throw exeption if exceptions enabled
-				throw std::out_of_range("invalid hash_map<K, T> key");
-#else
-				// assert false if asserts enabled
-				EASTL_ASSERT_MSG(false, "invalid hash_map<K, T> key");
-#endif
-			}
-			// undefined behaviour if exceptions and asserts are disabled and it == end()
-			return it->second;
-		}
-
-		template<typename KX>
-		const T& DoAt(const KX& k) const
-		{
-			const_iterator it = base_type::find(k);
-
-			if (it == base_type::end())
-			{
-#if EASTL_EXCEPTIONS_ENABLED
-				// throw exeption if exceptions enabled
-				throw std::out_of_range("invalid hash_map<K, T> key");
-#else
-				// assert false if asserts enabled
-				EASTL_ASSERT_MSG(false, "invalid hash_map<K, T> key");
-#endif
-			}
-			// undefined behaviour if exceptions and asserts are disabled and it == end()
-			return it->second;
-		}
-
 		template <class K, class... Args>
 		insert_return_type try_emplace_forwarding(K&& k, Args&&... args)
 		{
@@ -458,8 +369,8 @@ namespace eastl
 
 	/// hash_multimap
 	///
-	/// Implements a hash_multimap, which is the same thing as a hash_map 
-	/// except that contained elements need not be unique. See the 
+	/// Implements a hash_multimap, which is the same thing as a hash_map
+	/// except that contained elements need not be unique. See the
 	/// documentation for hash_set for details.
 	///
 	template <typename Key, typename T, typename Hash = eastl::hash<Key>, typename Predicate = eastl::equal_to<Key>,
@@ -469,9 +380,9 @@ namespace eastl
 						   Hash, mod_range_hashing, default_ranged_hash, prime_rehash_policy, bCacheHashCode, true, false>
 	{
 	public:
-		typedef hashtable<Key, eastl::pair<const Key, T>, Allocator, 
-						  eastl::use_first<eastl::pair<const Key, T> >, 
-						  Predicate, Hash, mod_range_hashing, default_ranged_hash, 
+		typedef hashtable<Key, eastl::pair<const Key, T>, Allocator,
+						  eastl::use_first<eastl::pair<const Key, T> >,
+						  Predicate, Hash, mod_range_hashing, default_ranged_hash,
 						  prime_rehash_policy, bCacheHashCode, true, false>           base_type;
 		typedef hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>     this_type;
 		typedef typename base_type::size_type                                         size_type;
@@ -485,9 +396,6 @@ namespace eastl
 
 		using base_type::insert;
 
-		static_assert(!is_const<value_type>::value, "hash_multimap<T> value_type must be non-const.");
-		static_assert(!is_volatile<value_type>::value, "hash_multimap<T> value_type must be non-volatile.");
-
 	private:
 		using base_type::insert_or_assign;
 
@@ -497,7 +405,7 @@ namespace eastl
 		/// Default constructor.
 		///
 		explicit hash_multimap(const allocator_type& allocator = EASTL_HASH_MULTIMAP_DEFAULT_ALLOCATOR)
-			: base_type(0, Hash(), mod_range_hashing(), default_ranged_hash(), 
+			: base_type(0, Hash(), mod_range_hashing(), default_ranged_hash(),
 						Predicate(), eastl::use_first<eastl::pair<const Key, T> >(), allocator)
 		{
 			// Empty
@@ -507,28 +415,22 @@ namespace eastl
 		/// hash_multimap
 		///
 		/// Constructor which creates an empty container, but start with nBucketCount buckets.
-		/// We default to a small nBucketCount value, though the user really should manually 
+		/// We default to a small nBucketCount value, though the user really should manually
 		/// specify an appropriate value in order to prevent memory from being reallocated.
 		///
-		/// note: difference in explicit keyword from the standard.
-		explicit hash_multimap(size_type nBucketCount, const Hash& hashFunction = Hash(), 
+		explicit hash_multimap(size_type nBucketCount, const Hash& hashFunction = Hash(),
 							   const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MULTIMAP_DEFAULT_ALLOCATOR)
-			: base_type(nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
+			: base_type(nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(),
 						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
-
-		// hash_multimap(size_type nBucketCount, const allocator_type& allocator)
-		// hash_multimap(size_type nBucketCount, const Hash& hashFunction, const allocator_type& allocator)
 
 
 		hash_multimap(const this_type& x)
 		  : base_type(x)
 		{
 		}
-
-		// hash_multimap(const this_type& x, const allocator_type& allocator)
 
 
 		hash_multimap(this_type&& x)
@@ -545,48 +447,32 @@ namespace eastl
 
 		/// hash_multimap
 		///
-		/// initializer_list-based constructor. 
+		/// initializer_list-based constructor.
 		/// Allows for initializing with brace values (e.g. hash_multimap<int, char*> hm = { {3,"c"}, {3,"C"}, {4,"d"} }; )
-		///     
-		hash_multimap(std::initializer_list<value_type> ilist, size_type nBucketCount = 0, const Hash& hashFunction = Hash(), 
+		///
+		hash_multimap(std::initializer_list<value_type> ilist, size_type nBucketCount = 0, const Hash& hashFunction = Hash(),
 				   const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MULTIMAP_DEFAULT_ALLOCATOR)
-			: base_type(ilist.begin(), ilist.end(), nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
+			: base_type(ilist.begin(), ilist.end(), nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(),
 						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
-
-		hash_multimap(std::initializer_list<value_type> ilist, const allocator_type& allocator)
-			: base_type(ilist.begin(), ilist.end(), 0, Hash(), mod_range_hashing(), default_ranged_hash(), Predicate(), eastl::use_first<eastl::pair<const Key, T> >(), allocator)
-		{
-			// Empty
-		}
-
-		// hash_multimap(std::initializer_list<value_type> ilist, size_type nBucketCount, const allocator_type& allocator)
-
-		// hash_multimap(std::initializer_list<value_type> ilist, size_type nBucketCount, const Hash& hashFunction,
-		// 	const allocator_type& allocator)
 
 
 		/// hash_multimap
 		///
-		/// An input bucket count of <= 1 causes the bucket count to be equal to the number of 
+		/// An input bucket count of <= 1 causes the bucket count to be equal to the number of
 		/// elements in the input range.
 		///
 		template <typename ForwardIterator>
-		hash_multimap(ForwardIterator first, ForwardIterator last, size_type nBucketCount = 0, const Hash& hashFunction = Hash(), 
+		hash_multimap(ForwardIterator first, ForwardIterator last, size_type nBucketCount = 0, const Hash& hashFunction = Hash(),
 					  const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MULTIMAP_DEFAULT_ALLOCATOR)
-			: base_type(first, last, nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), 
+			: base_type(first, last, nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(),
 						predicate, eastl::use_first<eastl::pair<const Key, T> >(), allocator)
 		{
 			// Empty
 		}
 
-		// template <typename ForwardIterator>
-		// hash_multimap(ForwardIterator first, ForwardIterator last, size_type nBucketCount, const allocator_type& allocator)
-
-		// template <typename ForwardIterator>
-		// hash_multimap(ForwardIterator first, ForwardIterator last, size_type nBucketCount, const Hash& hashFunction, const allocator_type& allocator)
 
 		this_type& operator=(const this_type& x)
 		{
@@ -608,8 +494,8 @@ namespace eastl
 
 		/// insert
 		///
-		/// This is an extension to the C++ standard. We insert a default-constructed 
-		/// element with the given key. The reason for this is that we can avoid the 
+		/// This is an extension to the C++ standard. We insert a default-constructed
+		/// element with the given key. The reason for this is that we can avoid the
 		/// potentially expensive operation of creating and/or copying a mapped_type
 		/// object on the stack.
 		insert_return_type insert(const key_type& key)
@@ -621,12 +507,6 @@ namespace eastl
 		insert_return_type insert(key_type&& key)
 		{
 			return base_type::DoInsertKey(false_type(), eastl::move(key));
-		}
-
-		template <typename P, eastl::enable_if_t<eastl::is_constructible_v<value_type, P&&>, bool> = true>
-		insert_return_type insert(P&& otherValue)
-		{
-			return base_type::emplace(eastl::forward<P>(otherValue));
 		}
 
 	}; // hash_multimap
@@ -660,7 +540,7 @@ namespace eastl
 	///////////////////////////////////////////////////////////////////////
 
 	template <typename Key, typename T, typename Hash, typename Predicate, typename Allocator, bool bCacheHashCode>
-	inline bool operator==(const hash_map<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& a, 
+	inline bool operator==(const hash_map<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& a,
 						   const hash_map<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& b)
 	{
 		typedef typename hash_map<Key, T, Hash, Predicate, Allocator, bCacheHashCode>::const_iterator const_iterator;
@@ -675,7 +555,7 @@ namespace eastl
 		{
 			const_iterator bi = b.find(ai->first);
 
-			if((bi == biEnd) || !(*ai == *bi))  // We have to compare the values, because lookups are done by keys alone but the full value_type of a map is a key/value pair. 
+			if((bi == biEnd) || !(*ai == *bi))  // We have to compare the values, because lookups are done by keys alone but the full value_type of a map is a key/value pair.
 				return false;                   // It's possible that two elements in the two containers have identical keys but different values.
 		}
 
@@ -684,7 +564,7 @@ namespace eastl
 
 #if !defined(EA_COMPILER_HAS_THREE_WAY_COMPARISON)
 	template <typename Key, typename T, typename Hash, typename Predicate, typename Allocator, bool bCacheHashCode>
-	inline bool operator!=(const hash_map<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& a, 
+	inline bool operator!=(const hash_map<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& a,
 						   const hash_map<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& b)
 	{
 		return !(a == b);
@@ -692,7 +572,7 @@ namespace eastl
 #endif
 
 	template <typename Key, typename T, typename Hash, typename Predicate, typename Allocator, bool bCacheHashCode>
-	inline bool operator==(const hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& a, 
+	inline bool operator==(const hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& a,
 						   const hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& b)
 	{
 		typedef typename hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>::const_iterator const_iterator;
@@ -702,9 +582,9 @@ namespace eastl
 		if(a.size() != b.size())
 			return false;
 
-		// We can't simply search for each element of a in b, as it may be that the bucket for 
-		// two elements in a has those same two elements in b but in different order (which should 
-		// still result in equality). Also it's possible that one bucket in a has two elements which 
+		// We can't simply search for each element of a in b, as it may be that the bucket for
+		// two elements in a has those same two elements in b but in different order (which should
+		// still result in equality). Also it's possible that one bucket in a has two elements which
 		// both match a solitary element in the equivalent bucket in b (which shouldn't result in equality).
 		eastl::pair<const_iterator, const_iterator> aRange;
 		eastl::pair<const_iterator, const_iterator> bRange;
@@ -725,12 +605,12 @@ namespace eastl
 			// Implement a fast pathway for the case that there's just a single element.
 			if(aDistance == 1)
 			{
-				if(!(*aRange.first == *bRange.first)) // We have to compare the values, because lookups are done by keys alone but the full value_type of a map is a key/value pair. 
+				if(!(*aRange.first == *bRange.first)) // We have to compare the values, because lookups are done by keys alone but the full value_type of a map is a key/value pair.
 					return false;                     // It's possible that two elements in the two containers have identical keys but different values. Ditto for the permutation case below.
 			}
 			else
 			{
-				// Check to see if these aRange and bRange are any permutation of each other. 
+				// Check to see if these aRange and bRange are any permutation of each other.
 				// This check gets slower as there are more elements in the range.
 				if(!eastl::is_permutation(aRange.first, aRange.second, bRange.first))
 					return false;
@@ -742,7 +622,7 @@ namespace eastl
 
 #if !defined(EA_COMPILER_HAS_THREE_WAY_COMPARISON)
 	template <typename Key, typename T, typename Hash, typename Predicate, typename Allocator, bool bCacheHashCode>
-	inline bool operator!=(const hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& a, 
+	inline bool operator!=(const hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& a,
 						   const hash_multimap<Key, T, Hash, Predicate, Allocator, bCacheHashCode>& b)
 	{
 		return !(a == b);
@@ -754,9 +634,3 @@ namespace eastl
 
 
 #endif // Header include guard
-
-
-
-
-
-

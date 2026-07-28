@@ -945,9 +945,10 @@ namespace eastl
 			native = big
 		#endif
 	};
-			EA_RESTORE_VC_WARNING();
+	EA_RESTORE_VC_WARNING();
 
-	} // namespace eastl
+} // namespace eastl
+
 
 // The following files implement the type traits themselves.
 #include <EASTL/internal/type_fundamental.h>
@@ -958,19 +959,5 @@ namespace eastl
 #include <EASTL/internal/type_pod.h>
 #include <EASTL/internal/type_detected.h>
 
-namespace eastl
-{
-namespace detail
-{
-	template<typename, typename = void>
-	struct is_transparent_comparison : eastl::false_type {};
-
-	template<typename T>
-	struct is_transparent_comparison<T, eastl::void_t<typename T::is_transparent>> : eastl::true_type {};
-
-	template <typename T>
-	EA_CONSTEXPR bool is_transparent_comparison_v = is_transparent_comparison<T>::value;
-} // namespace detail
-} // namespace eastl
 
 #endif // Header include guard

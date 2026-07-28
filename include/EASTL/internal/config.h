@@ -59,16 +59,11 @@
 
 #ifndef EASTL_EABASE_DISABLED
 	#include <EABase/eabase.h>
-	#include <EABase/eadeprecated.h>
 #endif
 #include <EABase/eahave.h>
 
 #if defined(EA_PRAGMA_ONCE_SUPPORTED)
 	#pragma once
-#endif
-
-#if EA_TSAN_ENABLED
-#include <sanitizer/tsan_interface.h>
 #endif
 
 
@@ -94,8 +89,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef EASTL_VERSION
-	#define EASTL_VERSION   "3.27.00"
-	#define EASTL_VERSION_N  32700
+	#define EASTL_VERSION   "3.21.12"
+	#define EASTL_VERSION_N  32112
 #endif
 
 
@@ -769,32 +764,6 @@ namespace eastl
 #if !defined(EASTL_EXCEPTIONS_ENABLED) || ((EASTL_EXCEPTIONS_ENABLED == 1) && defined(EA_COMPILER_NO_EXCEPTIONS))
 	#define EASTL_EXCEPTIONS_ENABLED 0
 #endif
-
-
-///////////////////////////////////////////////////////////////////////////////
-// EASTL_THROW_OR_ASSERT
-//
-// Throw an exception if exceptions enabled or assert if asserts are enabled,
-// otherwise no-op.
-//
-///////////////////////////////////////////////////////////////////////////////
-#if EASTL_EXCEPTIONS_ENABLED
-	#define EASTL_THROW_OR_ASSERT(exceptionType, message) throw exceptionType()
-	#define EASTL_THROW_MSG_OR_ASSERT(exceptionType, message) throw exceptionType(message)
-#elif EASTL_ASSERT_ENABLED
-	#define EASTL_THROW_OR_ASSERT(exceptionType, message) EASTL_FAIL_MSG(message)
-	#define EASTL_THROW_MSG_OR_ASSERT(exceptionType, message) EASTL_FAIL_MSG(message)
-#else
-	// empty braces to prevent the following warning in the following context:
-	// if(expr)
-	//     EASTL_THROW_OR_ASSERT(exceptionType, message);
-	// warning C4390: ';': empty controlled statement found; is this the intent?
-	#define EASTL_THROW_OR_ASSERT(exceptionType, message) {}
-	#define EASTL_THROW_MSG_OR_ASSERT(exceptionType, message) {}
-#endif
-
-
-
 
 
 
@@ -1591,132 +1560,7 @@ namespace eastl
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// EASTL_ATOMIC_READ_DEPENDS_IS_ACQUIRE, this determines if we want the semantics of EASTL's
-// read_depends memory order to be strengthened to acquire, the default is for read_depends to
-// do relaxed semantics since it's intended for performance sensitive code with very specific
-// semantics, see atomic.h for details.
-#ifndef EASTL_ATOMIC_READ_DEPENDS_IS_ACQUIRE
-	#define EASTL_ATOMIC_READ_DEPENDS_IS_ACQUIRE EA_DISABLED
-#endif
-
-// EASTL_INTERNAL_TSAN_ACQUIRE for EASTL internal use only. Instrument an acquire operation
-// on an addres for TSAN purposes
-#if EA_TSAN_ENABLED
-	#define EASTL_INTERNAL_TSAN_ACQUIRE(x) __tsan_acquire(x)
-#else
-	#define EASTL_INTERNAL_TSAN_ACQUIRE(x)
-#endif
-
-
-///////////////////////////////////////////////////////////////////////////////
-// EASTL_DEPRECATIONS_FOR_2024_SEPT
-//
-// This macro is provided as a means to disable warnings temporarily (in particular if a user is compiling with warnings
-// as errors). All deprecations raised by this macro (when it is EA_ENABLED) are scheduled for removal approximately
-// September 2024.
-//
-///////////////////////////////////////////////////////////////////////////////
-#ifndef EASTL_DEPRECATIONS_FOR_2024_SEPT
-	#if defined(EA_DEPRECATIONS_FOR_2024_SEPT)
-		#define EASTL_DEPRECATIONS_FOR_2024_SEPT EA_DEPRECATIONS_FOR_2024_SEPT
-	#else
-		#define EASTL_DEPRECATIONS_FOR_2024_SEPT EA_ENABLED
-	#endif
-#endif
-
-#if EA_IS_ENABLED(EASTL_DEPRECATIONS_FOR_2024_SEPT)
-	#define EASTL_REMOVE_AT_2024_SEPT EA_DEPRECATED
-#else
-		#define EASTL_REMOVE_AT_2024_SEPT
-	#endif
-
-
-// EA_DEPRECATIONS_FOR_2025_APRIL
-#ifndef EASTL_DEPRECATIONS_FOR_2025_APRIL
-	#if defined(EA_DEPRECATIONS_FOR_2025_APRIL)
-		#define EASTL_DEPRECATIONS_FOR_2025_APRIL EA_DEPRECATIONS_FOR_2025_APRIL
-	#else
-		#define EASTL_DEPRECATIONS_FOR_2025_APRIL EA_ENABLED
-	#endif
-#endif
-
-#if EA_IS_ENABLED(EASTL_DEPRECATIONS_FOR_2025_APRIL)
-	#define EASTL_REMOVE_AT_2025_APRIL EA_DEPRECATED
-	#define EASTL_REMOVE_AT_2025_APRIL_MSG EA_DEPRECATED_MESSAGE
-	#define EASTL_DISABLE_DEPRECATED_UNTIL_2025_APRIL EA_INTERNAL_DISABLE_DEPRECATED
-	#define EASTL_RESTORE_DEPRECATED_UNTIL_2025_APRIL EA_RESTORE_DEPRECATED
-#else
-	#define EASTL_REMOVE_AT_2025_APRIL
-	#define EASTL_REMOVE_AT_2025_APRIL_MSG(msg)
-	#define EASTL_DISABLE_DEPRECATED_UNTIL_2025_APRIL()
-	#define EASTL_RESTORE_DEPRECATED_UNTIL_2025_APRIL()
-#endif
-
-// EA_DEPRECATIONS_FOR_2025_OCT
-#ifndef EASTL_DEPRECATIONS_FOR_2025_OCT
-	#if defined(EA_DEPRECATIONS_FOR_2025_OCT)
-		#define EASTL_DEPRECATIONS_FOR_2025_OCT EA_DEPRECATIONS_FOR_2025_OCT
-	#else
-		#define EASTL_DEPRECATIONS_FOR_2025_OCT EA_ENABLED
-	#endif
-#endif
-
-#if EA_IS_ENABLED(EASTL_DEPRECATIONS_FOR_2025_OCT)
-	#define EASTL_REMOVE_AT_2025_OCT EA_DEPRECATED
-	#define EASTL_REMOVE_AT_2025_OCT_MSG EA_DEPRECATED_MESSAGE
-	#define EASTL_DISABLE_DEPRECATED_UNTIL_2025_OCT EA_INTERNAL_DISABLE_DEPRECATED
-	#define EASTL_RESTORE_DEPRECATED_UNTIL_2025_OCT EA_RESTORE_DEPRECATED
-#else
-	#define EASTL_REMOVE_AT_2025_OCT
-	#define EASTL_REMOVE_AT_2025_OCT_MSG(msg)
-	#define EASTL_DISABLE_DEPRECATED_UNTIL_2025_OCT()
-	#define EASTL_RESTORE_DEPRECATED_UNTIL_2025_OCT()
-#endif
-
-// EA_DEPRECATIONS_FOR_2026_APRIL
-#ifndef EASTL_DEPRECATIONS_FOR_2026_APRIL
-	#if defined(EA_DEPRECATIONS_FOR_2026_APRIL)
-		#define EASTL_DEPRECATIONS_FOR_2026_APRIL EA_DEPRECATIONS_FOR_2026_APRIL
-	#else
-		#define EASTL_DEPRECATIONS_FOR_2026_APRIL EA_ENABLED
-	#endif
-#endif
-
-#if EA_IS_ENABLED(EASTL_DEPRECATIONS_FOR_2026_APRIL)
-	#define EASTL_REMOVE_AT_2026_APRIL EA_DEPRECATED
-	#define EASTL_REMOVE_AT_2026_APRIL_MSG EA_DEPRECATED_MESSAGE
-	#define EASTL_DISABLE_DEPRECATED_UNTIL_2026_APRIL EA_INTERNAL_DISABLE_DEPRECATED
-	#define EASTL_RESTORE_DEPRECATED_UNTIL_2026_APRIL EA_RESTORE_DEPRECATED
-#else
-	#define EASTL_REMOVE_AT_2026_APRIL
-	#define EASTL_REMOVE_AT_2026_APRIL_MSG(msg)
-	#define EASTL_DISABLE_DEPRECATED_UNTIL_2026_APRIL()
-	#define EASTL_RESTORE_DEPRECATED_UNTIL_2026_APRIL()
-#endif
-
-// EA_DEPRECATIONS_FOR_2026_OCT
-#ifndef EASTL_DEPRECATIONS_FOR_2026_OCT
-	#if defined(EA_DEPRECATIONS_FOR_2026_OCT)
-		#define EASTL_DEPRECATIONS_FOR_2026_OCT EA_DEPRECATIONS_FOR_2026_OCT
-	#else
-		#define EASTL_DEPRECATIONS_FOR_2026_OCT EA_ENABLED
-	#endif
-#endif
-
-#if EA_IS_ENABLED(EASTL_DEPRECATIONS_FOR_2026_OCT)
-	#define EASTL_REMOVE_AT_2026_OCT EA_DEPRECATED
-	#define EASTL_REMOVE_AT_2026_OCT_MSG EA_DEPRECATED_MESSAGE
-	#define EASTL_DISABLE_DEPRECATED_UNTIL_2026_OCT EA_INTERNAL_DISABLE_DEPRECATED
-	#define EASTL_RESTORE_DEPRECATED_UNTIL_2026_OCT EA_RESTORE_DEPRECATED
-#else
-	#define EASTL_REMOVE_AT_2026_OCT
-	#define EASTL_REMOVE_AT_2026_OCT_MSG(msg)
-	#define EASTL_DISABLE_DEPRECATED_UNTIL_2026_OCT()
-	#define EASTL_RESTORE_DEPRECATED_UNTIL_2026_OCT()
-#endif
-
-
-
+// eastl_size_t
 //
 // Defined as an unsigned integer type, usually either size_t or uint32_t.
 // Defaults to size_t to match std STL unless the user specifies to use

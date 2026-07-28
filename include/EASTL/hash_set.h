@@ -81,29 +81,7 @@ namespace eastl
 	/// is useful for cases whereby the calculation of the hash value for
 	/// a contained object is very expensive.
 	///
-	/// Heterogeneous lookup, insertion and erasure
-	/// See
-	/// https://en.cppreference.com/w/cpp/utility/functional#Transparent_function_objects
-	/// https://en.cppreference.com/w/cpp/utility/functional/less_void
-	/// https://en.cppreference.com/w/cpp/container/unordered_set/find
-	/// 
-	/// You can avoid creating key objects when calling member functions
-	/// with a key_type parameter by declaring the container with a
-	/// transparent hash and comparison type (eg. equal_to<void>) and
-	/// passing objects to be passed to these function objects.
-	/// 
-	/// This optimization is supported for member functions that take a
-	/// key_type parameter, ie. heterogeneous lookup, insertion and erasure,
-	/// not just find().
-	/// 
-	/// Using transparent types is safer than using find_as because the
-	/// latter requires the user specify hash and equality function objects
-	/// which must have the same semantics as the container's hash and
-	/// equality objects, otherwise the behaviour is undefined.
-	/// 
 	/// find_as
-	/// Note: Prefer heterogeneous lookup (see above).
-	/// 
 	/// In order to support the ability to have a hashtable of strings but
 	/// be able to do efficiently lookups via char pointers (i.e. so they 
 	/// aren't converted to string objects), we provide the find_as 
@@ -134,14 +112,6 @@ namespace eastl
 		typedef typename base_type::value_type                                    value_type;
 		typedef typename base_type::allocator_type                                allocator_type;
 		typedef typename base_type::node_type                                     node_type;
-		typedef typename base_type::iterator									  iterator;
-		typedef typename base_type::const_iterator								  const_iterator;
-		typedef typename base_type::insert_return_type							  insert_return_type;
-
-		using base_type::insert;
-
-		static_assert(!is_const<value_type>::value, "hash_set<T> value_type must be non-const.");
-		static_assert(!is_volatile<value_type>::value, "hash_set<T> value_type must be non-volatile.");
 
 	public:
 		/// hash_set
@@ -159,8 +129,8 @@ namespace eastl
 		///
 		/// Constructor which creates an empty container with allocator.
 		///
-			hash_set(const allocator_type& allocator)
-				: base_type(0, Hash(), mod_range_hashing(), default_ranged_hash(), Predicate(), eastl::use_self<Value>(), allocator)
+		explicit hash_set(const allocator_type& allocator)
+			: base_type(0, Hash(), mod_range_hashing(), default_ranged_hash(), Predicate(), eastl::use_self<Value>(), allocator)
 		{
 			// Empty
 		}
@@ -172,7 +142,6 @@ namespace eastl
 		/// We default to a small nBucketCount value, though the user really should manually 
 		/// specify an appropriate value in order to prevent memory from being reallocated.
 		///
-		/// note: difference in explicit keyword from the standard.
 		explicit hash_set(size_type nBucketCount, const Hash& hashFunction = Hash(), const Predicate& predicate = Predicate(), 
 						  const allocator_type& allocator = EASTL_HASH_SET_DEFAULT_ALLOCATOR)
 			: base_type(nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), predicate, eastl::use_self<Value>(), allocator)
@@ -180,16 +149,11 @@ namespace eastl
 			// Empty
 		}
 
-		// hash_set(size_type nBucketCount, const allocator_type& allocator)
-		// hash_set(size_type nBucketCount, const Hash& hashFunction, const allocator_type& allocator)
-
 
 		hash_set(const this_type& x)
 		  : base_type(x)
 		{
 		}
-
-		// hash_set(const this_type& x, const allocator_type& allocator)
 
 
 		hash_set(this_type&& x)
@@ -216,17 +180,6 @@ namespace eastl
 			// Empty
 		}
 
-		hash_set(std::initializer_list<value_type> ilist, const allocator_type& allocator)
-			: base_type(ilist.begin(), ilist.end(), 0, Hash(), mod_range_hashing(), default_ranged_hash(), Predicate(), eastl::use_self<Value>(), allocator)
-		{
-			// Empty
-		}
-
-		// hash_set(std::initializer_list<value_type> ilist, size_type nBucketCount, const allocator_type& allocator)
-
-		// hash_set(std::initializer_list<value_type> ilist, size_type nBucketCount, const Hash& hashFunction,
-		// 	const allocator_type& allocator)
-
 
 		/// hash_set
 		///
@@ -240,12 +193,6 @@ namespace eastl
 		{
 			// Empty
 		}
-
-		// template <typename ForwardIterator>
-		// hash_set(ForwardIterator first, ForwardIterator last, size_type nBucketCount, const allocator_type& allocator)
-
-		// template <typename ForwardIterator>
-		// hash_set(ForwardIterator first, ForwardIterator last, size_type nBucketCount, const Hash& hashFunction, const allocator_type& allocator)
 
 
 		this_type& operator=(const this_type& x)
@@ -263,39 +210,6 @@ namespace eastl
 		this_type& operator=(this_type&& x)
 		{
 			return static_cast<this_type&>(base_type::operator=(eastl::move(x)));
-		}
-
-		template<typename KX, typename HX = Hash, typename Pred = Predicate,
-			eastl::enable_if_t<eastl::detail::is_transparent_comparison_v<HX> && eastl::detail::is_transparent_comparison_v<Pred>, bool> = true>
-		insert_return_type insert(KX&& k)
-		{
-			// There's no function in the base type that we can re-use here. insert(value_type&&) is implemented in terms of DoInsertValue(), but that
-			// unconditionally creates a node and therefore the key_type. So we create our own appropriate implementation.
-
-			const typename base_type::hash_code_t c = base_type::get_hash_code(k);
-			const size_type n = (size_type)base_type::bucket_index(k, c, (uint32_t)base_type::mnBucketCount);
-
-			node_type* const pNode = base_type::DoFindNode(base_type::mpBucketArray[n], k, c);
-
-			if (!pNode)
-			{
-				node_type* const pNodeNew = base_type::DoAllocateNode(eastl::forward<KX>(k));
-				return base_type::template DoInsertUniqueNode<true>(pNodeNew->mValue, c, n, pNodeNew);
-			}
-			else
-			{
-				return pair<iterator, bool>(iterator(pNode, base_type::mpBucketArray + n), false);
-			}
-		}
-
-		// this function was incorrectly defined in the hashtable base type.
-		// this function implicitly converts to value_type, which it shouldn't. Additionally, it does not correctly support heterogeneous insertion (unconditionally creates a key_type).
-		template <typename P, typename HX = Hash, typename Pred = Predicate,
-			eastl::enable_if_t<!eastl::is_convertible_v<P&&, value_type> && !(eastl::detail::is_transparent_comparison_v<HX> && eastl::detail::is_transparent_comparison_v<Pred>) && eastl::is_constructible_v<value_type, P&&>, bool> = true>
-		EA_REMOVE_AT_2025_OCT_MSG("Replace call with insert(value_type(...)) or emplace(...) or declare container with transparent hash and comparator.")
-		insert_return_type insert(P&& otherValue)
-		{
-			return base_type::emplace(eastl::forward<P>(otherValue));
 		}
 
 	}; // hash_set
@@ -345,12 +259,6 @@ namespace eastl
 		typedef typename base_type::value_type                                        value_type;
 		typedef typename base_type::allocator_type                                    allocator_type;
 		typedef typename base_type::node_type                                         node_type;
-		typedef typename base_type::insert_return_type								  insert_return_type;
-
-		using base_type::insert;
-
-		static_assert(!is_const<value_type>::value, "hash_multiset<T> value_type must be non-const.");
-		static_assert(!is_volatile<value_type>::value, "hash_multiset<T> value_type must be non-volatile.");
 
 	public:
 		/// hash_multiset
@@ -370,7 +278,6 @@ namespace eastl
 		/// We default to a small nBucketCount value, though the user really should manually 
 		/// specify an appropriate value in order to prevent memory from being reallocated.
 		///
-		/// note: difference in explicit keyword from the standard.
 		explicit hash_multiset(size_type nBucketCount, const Hash& hashFunction = Hash(), 
 							   const Predicate& predicate = Predicate(), const allocator_type& allocator = EASTL_HASH_MULTISET_DEFAULT_ALLOCATOR)
 			: base_type(nBucketCount, hashFunction, mod_range_hashing(), default_ranged_hash(), predicate, eastl::use_self<Value>(), allocator)
@@ -378,16 +285,11 @@ namespace eastl
 			// Empty
 		}
 
-		// hash_multiset(size_type nBucketCount, const allocator_type& allocator)
-		// hash_multiset(size_type nBucketCount, const Hash& hashFunction, const allocator_type& allocator)
-
 
 		hash_multiset(const this_type& x)
 		  : base_type(x)
 		{
 		}
-
-		// hash_multiset(const this_type& x, const allocator_type& allocator)
 
 
 		hash_multiset(this_type&& x)
@@ -414,17 +316,6 @@ namespace eastl
 			// Empty
 		}
 
-		hash_multiset(std::initializer_list<value_type> ilist, const allocator_type& allocator)
-			: base_type(ilist.begin(), ilist.end(), 0, Hash(), mod_range_hashing(), default_ranged_hash(), Predicate(), eastl::use_self<Value>(), allocator)
-		{
-			// Empty
-		}
-
-		// hash_multiset(std::initializer_list<value_type> ilist, size_type nBucketCount, const allocator_type& allocator)
-
-		// hash_multiset(std::initializer_list<value_type> ilist, size_type nBucketCount, const Hash& hashFunction,
-		// 	const allocator_type& allocator)
-
 
 		/// hash_multiset
 		///
@@ -438,12 +329,6 @@ namespace eastl
 		{
 			// Empty
 		}
-
-		// template <typename ForwardIterator>
-		// hash_multiset(ForwardIterator first, ForwardIterator last, size_type nBucketCount, const allocator_type& allocator)
-
-		// template <typename ForwardIterator>
-		// hash_multiset(ForwardIterator first, ForwardIterator last, size_type nBucketCount, const Hash& hashFunction, const allocator_type& allocator)
 
 
 		this_type& operator=(const this_type& x)
@@ -461,15 +346,6 @@ namespace eastl
 		this_type& operator=(this_type&& x)
 		{
 			return static_cast<this_type&>(base_type::operator=(eastl::move(x)));
-		}
-
-		// this function was incorrectly defined in the hashtable base type.
-		// this function implicitly converts to value_type, which it shouldn't.
-		template <typename P, eastl::enable_if_t<!eastl::is_convertible_v<P&&, value_type> && eastl::is_constructible_v<value_type, P&&>, bool> = true>
-		EA_REMOVE_AT_2025_OCT_MSG("Replace call with insert(value_type(...)) or emplace(...).")
-		insert_return_type insert(P&& otherValue)
-		{
-			return base_type::emplace(eastl::forward<P>(otherValue));
 		}
 
 	}; // hash_multiset
