@@ -49,18 +49,29 @@ had allocation/deallocation mismatches:
 | `make_shared<T>(args...)` | `EASTLAlloc` (mimalloc) | `EASTLFree` (mimalloc) | ✅ Already consistent |
 | `shared_ptr<T>(new T)` | `new T` (system CRT) | `default_delete<T>` → `GetDefaultAllocator()->deallocate()` | ⚠️ Known limitation |
 
+### Additional Bug Found: `fixed_vector.h` uses undeclared `construct_at`
+
+In `fixed_vector.h`, the `DoPushBack(false_type)` and `DoPushBackMove(false_type)` specializations
+(for `bEnableOverflow=false`) called `construct_at()` without the `eastl::` namespace prefix.
+Neither `std::construct_at` (C++20) nor `eastl::construct_at` is available in this configuration,
+causing a compilation error when using `push_back()` on a non-overflow `fixed_vector`.
+
+**Fix**: Replaced with `::new((void*)...) value_type` placement new expressions,
+consistent with the existing code path under the `#else` branch.
+
+**Root cause**: These functions were added/modernized with C++20 `construct_at` but the
+project is not compiled with C++20, and EASTL does not provide its own `construct_at` wrapper.
+
 ### No Changes Needed
 
 - `include/EASTL/shared_ptr.h` — `make_shared`/`allocate_shared` already use `EASTLAlloc`/`EASTLFree`.
 - `include/EASTL/allocator.h` — Interface compatible with single-arg `allocate(size_t)` calls.
 - `source/allocator_luisa.cpp` — Allocator implementation unchanged.
+- `include/EASTL/vector.h` — Already consistent; uses `allocate_memory`/`EASTLFree` through the allocator.
+- `include/EASTL/internal/fixed_pool.h` — `fixed_vector_allocator` correctly delegates to overflow allocator and skips fixed buffer deallocation.
 
 ### Test
 
-A comprehensive test suite is in `src/tests/unit/core/test_smart_ptr_allocator.cpp` (24 tests,
-registered in `src/tests/xmake.lua`). Run with:
-
-```bash
-xmake build test_smart_ptr_allocator
-xmake run test_smart_ptr_allocator
-```
+A comprehensive test suite is in `src/tests/unit/core/test_eastl_allocation.cpp` (44 tests,
+covering `unique_ptr`, `make_unique`, `default_delete`, `smart_ptr_deleter`, `smart_array_deleter`,
+`vector`, and `fixed_vector`). Registered in both `src/tests/xmake.lua` and `src/tests/CMakeLists.txt`.
