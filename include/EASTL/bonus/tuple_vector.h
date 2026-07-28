@@ -222,7 +222,7 @@ struct TupleRecurser<T, Ts...> : TupleRecurser<Ts...>
 	{
 		size_type allocationOffset = CalculatAllocationOffset(offset);
 		size_type allocationSize = CalculateAllocationSize(offset, capacity);
-		vec.TupleVecLeaf<I, T>::mpData = (T*)((uintptr_t)pData + allocationOffset);
+		vec.template TupleVecLeaf<I, T>::mpData = (T*)((uintptr_t)pData + allocationOffset);
 		TupleRecurser<Ts...>::template SetNewData<TupleVecImplType, I + 1>(vec, pData, capacity, allocationSize);
 	}
 
@@ -365,7 +365,7 @@ public:
 	template<typename VecImplType>
 	TupleVecIter(VecImplType* tupleVec, size_type index)
 		: mIndex(index)
-		, mpData{(void*)tupleVec->TupleVecLeaf<Indices, Ts>::mpData...}
+		, mpData{(void*)tupleVec->template TupleVecLeaf<Indices, Ts>::mpData...}
 	{ }
 
 	template <typename OtherIndicesType, typename... Us,
@@ -1044,7 +1044,7 @@ public:
 
 	void swap(this_type& x)
 	{
-		swallow((eastl::swap(TupleVecLeaf<Indices, Ts>::mpData, x.TupleVecLeaf<Indices, Ts>::mpData), 0)...);
+		swallow((eastl::swap(TupleVecLeaf<Indices, Ts>::mpData, x.template TupleVecLeaf<Indices, Ts>::mpData), 0)...);
 		eastl::swap(mpData, x.mpData);
 		eastl::swap(mNumElements, x.mNumElements);
 		eastl::swap(mNumCapacity, x.mNumCapacity);
