@@ -254,6 +254,18 @@ namespace eastl
 	inline fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::fixed_vector(this_type&& x) EA_NOEXCEPT
 		: base_type(fixed_allocator_type(mBuffer.buffer))
 	{
+		// Since we are a fixed_vector, we can't swap pointers. We can possibly do something like fixed_swap or
+		// we can just do an assignment from x. If we want to do the former then we need to have some complicated
+		// code to deal with overflow or no overflow, and whether the memory is in the fixed-size buffer or in 
+		// the overflow allocator. 90% of the time the memory should be in the fixed buffer, in which case
+		// a simple assignment is no worse than the fancy pathway.
+
+		// Since we are a fixed_vector, we can't normally swap pointers unless both this and 
+		// x are using using overflow and the overflow allocators are equal. To do:
+		//if(has_overflowed() && x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator()))
+		//{
+		//    We can swap contents and may need to swap the allocators as well.
+		//}
 		get_allocator().copy_overflow_allocator(x.get_allocator());
 
 		#if EASTL_NAME_ENABLED
@@ -262,26 +274,7 @@ namespace eastl
 
 		mpBegin = mpEnd = (value_type*)&mBuffer.buffer[0];
 		internalCapacityPtr() = mpBegin + nodeCount;
-
-		if(x.has_overflowed())
-		{
-			// Steal x's heap-allocated buffer.
-			mpBegin              = x.mpBegin;
-			mpEnd                = x.mpEnd;
-			internalCapacityPtr() = x.internalCapacityPtr();
-
-			// Reset x to empty state pointing to its own fixed buffer.
-			x.mpBegin = x.mpEnd = (value_type*)&x.mBuffer.buffer[0];
-			x.internalCapacityPtr() = x.mpBegin + nodeCount;
-		}
-		else
-		{
-			base_type::template DoAssign<move_iterator<iterator>, true>(
-				eastl::make_move_iterator(x.begin()), eastl::make_move_iterator(x.end()), false_type());
-			// Destroy moved-from source elements, then reset source to empty.
-			eastl::destruct(x.mpBegin, x.mpEnd);
-			x.mpEnd = x.mpBegin;
-		}
+		base_type::template DoAssign<move_iterator<iterator>, true>(eastl::make_move_iterator(x.begin()), eastl::make_move_iterator(x.end()), false_type());
 	}
 
 
@@ -289,28 +282,10 @@ namespace eastl
 	inline fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::fixed_vector(this_type&& x, const overflow_allocator_type& overflowAllocator)
 		: base_type(fixed_allocator_type(mBuffer.buffer, overflowAllocator))
 	{
+		// Since we are not swapping the allocated buffers but simply move the elements, we do not have to care about allocator compatibility.
 		mpBegin = mpEnd = (value_type*)&mBuffer.buffer[0];
 		internalCapacityPtr() = mpBegin + nodeCount;
-
-		if(x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator()))
-		{
-			// Steal x's heap-allocated buffer (allocators match).
-			mpBegin              = x.mpBegin;
-			mpEnd                = x.mpEnd;
-			internalCapacityPtr() = x.internalCapacityPtr();
-
-			// Reset x to empty state pointing to its own fixed buffer.
-			x.mpBegin = x.mpEnd = (value_type*)&x.mBuffer.buffer[0];
-			x.internalCapacityPtr() = x.mpBegin + nodeCount;
-		}
-		else
-		{
-			base_type::template DoAssign<move_iterator<iterator>, true>(
-				eastl::make_move_iterator(x.begin()), eastl::make_move_iterator(x.end()), false_type());
-			// Destroy moved-from source elements, then reset source to empty.
-			eastl::destruct(x.mpBegin, x.mpEnd);
-			x.mpEnd = x.mpBegin;
-		}
+		base_type::template DoAssign<move_iterator<iterator>, true>(eastl::make_move_iterator(x.begin()), eastl::make_move_iterator(x.end()), false_type());
 	}
 
 
@@ -377,54 +352,20 @@ namespace eastl
 	inline typename fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::this_type& 
 	fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::operator=(this_type&& x)
 	{
+		// Since we are a fixed_vector, we can't swap pointers. We can possibly do something like fixed_swap or
+		// we can just do an assignment from x. If we want to do the former then we need to have some complicated
+		// code to deal with overflow or no overflow, and whether the memory is in the fixed-size buffer or in 
+		// the overflow allocator. 90% of the time the memory should be in the fixed buffer, in which case
+		// a simple assignment is no worse than the fancy pathway.
 		if (this != &x)
 		{
-			if(has_overflowed() && x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator()))
-			{
-				// Both using heap with compatible allocators: fast pointer swap.
-				eastl::swap(mpBegin,              x.mpBegin);
-				eastl::swap(mpEnd,                x.mpEnd);
-				eastl::swap(internalCapacityPtr(), x.internalCapacityPtr());
-			}
-			else if(x.has_overflowed())
-			{
-				// x is on the heap, steal its buffer.
-				clear();
-				if(has_overflowed())
-				{
-					// Free this's old heap buffer before switching to x's.
-					DoFree(mpBegin, (size_type)(internalCapacityPtr() - mpBegin));
-				}
-				#if EASTL_ALLOCATOR_COPY_ENABLED
-					get_allocator() = x.get_allocator();
-				#endif
-				mpBegin              = x.mpBegin;
-				mpEnd                = x.mpEnd;
-				internalCapacityPtr() = x.internalCapacityPtr();
+			clear();
 
-				// Reset x to empty state pointing to its fixed buffer.
-				x.mpBegin = x.mpEnd = (value_type*)&x.mBuffer.buffer[0];
-				x.internalCapacityPtr() = x.mpBegin + nodeCount;
-			}
-			else
-			{
-				// Per-element move. If this has overflowed, free the heap buffer first.
-				clear();
-				if(has_overflowed())
-				{
-					DoFree(mpBegin, (size_type)(internalCapacityPtr() - mpBegin));
-					mpBegin = mpEnd = (value_type*)&mBuffer.buffer[0];
-					internalCapacityPtr() = mpBegin + nodeCount;
-				}
-				#if EASTL_ALLOCATOR_COPY_ENABLED
-					get_allocator() = x.get_allocator();
-				#endif
-				base_type::template DoAssign<move_iterator<iterator>, true>(
-					eastl::make_move_iterator(x.begin()), eastl::make_move_iterator(x.end()), false_type());
-				// Destroy moved-from source elements, then reset source to empty.
-				eastl::destruct(x.mpBegin, x.mpEnd);
-				x.mpEnd = x.mpBegin;
-			}
+			#if EASTL_ALLOCATOR_COPY_ENABLED
+				get_allocator() = x.get_allocator(); // The primary effect of this is to copy the overflow allocator.
+			#endif
+
+			base_type::template DoAssign<move_iterator<iterator>, true>(eastl::make_move_iterator(x.begin()), eastl::make_move_iterator(x.end()), false_type()); // Shorter route.
 		}
 		return *this;
 	}
@@ -583,7 +524,7 @@ namespace eastl
 	{
 		EASTL_ASSERT(mpEnd < internalCapacityPtr());
 
-					::new((void*)mpEnd++) value_type(value);
+		construct_at(mpEnd++, value);
 	}
 
 
@@ -608,8 +549,12 @@ namespace eastl
 	{
 		EASTL_ASSERT(mpEnd < internalCapacityPtr());
 
-			// This is a fixed-size no-overflow push_back. Use placement new.
-			::new((void*)mpEnd++) value_type;
+#if EA_IS_ENABLED(EA_DEPRECATIONS_FOR_2025_OCT)
+		construct_at(mpEnd++);
+#else
+		// deprecated: this is default initialization, but should be value initialization.
+		::new((void*)mpEnd++) value_type;
+#endif
 
 		return *(mpEnd - 1);        // Same as return back();
 	}
@@ -636,7 +581,7 @@ namespace eastl
 	{
 		EASTL_ASSERT(mpEnd < internalCapacityPtr());
 
-					::new((void*)mpEnd++) value_type(eastl::move(value));
+		construct_at(mpEnd++, eastl::move(value));
 	}
 
 
