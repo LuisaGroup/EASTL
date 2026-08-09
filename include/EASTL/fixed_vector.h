@@ -494,12 +494,12 @@ namespace eastl
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
 	inline void* fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::push_back_uninitialized()
 	{
-		return DoPushBackUninitialized(typename type_select<bEnableOverflow, true_type, false_type>::type());
+		return DoPushBackUninitialized(typename conditional<bEnableOverflow, true_type, false_type>::type());
 	}
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
 	inline void* fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::push_back_uninitialized(size_t n)
 	{
-		return DoPushBackUninitialized(typename type_select<bEnableOverflow, true_type, false_type>::type(), n);
+		return DoPushBackUninitialized(typename conditional<bEnableOverflow, true_type, false_type>::type(), n);
 	}
 
 
@@ -534,7 +534,7 @@ namespace eastl
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
 	inline void fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::push_back(const value_type& value)
 	{
-		DoPushBack(typename type_select<bEnableOverflow, true_type, false_type>::type(), value);
+		DoPushBack(typename conditional<bEnableOverflow, true_type, false_type>::type(), value);
 	}
 
 
@@ -559,7 +559,7 @@ namespace eastl
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
 	inline typename fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::reference fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::push_back()
 	{
-		return DoPushBack(typename type_select<bEnableOverflow, true_type, false_type>::type());
+		return DoPushBack(typename conditional<bEnableOverflow, true_type, false_type>::type());
 	}
 
 
@@ -586,7 +586,7 @@ namespace eastl
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
 	inline void fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::push_back(value_type&& value)
 	{
-		DoPushBackMove(typename type_select<bEnableOverflow, true_type, false_type>::type(), eastl::move(value));
+		DoPushBackMove(typename conditional<bEnableOverflow, true_type, false_type>::type(), eastl::move(value));
 	}
 
 
