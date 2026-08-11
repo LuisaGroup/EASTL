@@ -99,7 +99,6 @@ namespace eastl
 		using base_type::DoFree;
 		using base_type::DoAssign;
 		using base_type::DoAssignFromIterator;
-		using base_type::max_size;
 
 	protected:
 		aligned_buffer_type mBuffer;
@@ -126,6 +125,7 @@ namespace eastl
 		void      set_capacity(size_type n);
 		void      clear(bool freeOverflow);
 		void      reset_lose_memory();          // This is a unilateral reset to an initially empty state. No destructors are called, no deallocation occurs.
+		size_type max_size() const;             // Returns the max fixed size, which is the user-supplied nodeCount parameter.
 		bool      full() const;                 // Returns true if the fixed space has been fully allocated. Note that if overflow is enabled, the container size can be greater than nodeCount but full() could return true because the fixed space may have a recently freed slot. 
 		bool      has_overflowed() const;       // Returns true if the allocations spilled over into the overflow allocator. Meaningful only if overflow is enabled.
 		bool      can_overflow() const;         // Returns the value of the bEnableOverflow template parameter.
@@ -156,6 +156,13 @@ namespace eastl
 		reference DoPushBack(false_type);
 		reference DoPushBack(true_type);
 
+		// These helpers preserve the storage-ownership invariant: a fixed_vector
+		// either points at its own inline buffer or uniquely owns a complete heap
+		// pointer triplet allocated by a compatible overflow allocator.
+		void      reset_to_inline_empty() EA_NOEXCEPT;
+		void      steal_overflow_storage(this_type& x) EA_NOEXCEPT;
+		void      move_elements_from(this_type& x);
+
 	}; // fixed_vector
 
 
@@ -164,6 +171,36 @@ namespace eastl
 	///////////////////////////////////////////////////////////////////////
 	// fixed_vector
 	///////////////////////////////////////////////////////////////////////
+
+	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
+	inline void fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::reset_to_inline_empty() EA_NOEXCEPT
+	{
+		mpBegin = mpEnd = (value_type*)&mBuffer.buffer[0];
+		internalCapacityPtr() = mpBegin + nodeCount;
+	}
+
+
+	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
+	inline void fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::steal_overflow_storage(this_type& x) EA_NOEXCEPT
+	{
+		EASTL_ASSERT(empty() && !has_overflowed());
+		EASTL_ASSERT(x.has_overflowed());
+		mpBegin = x.mpBegin;
+		mpEnd = x.mpEnd;
+		internalCapacityPtr() = x.internalCapacityPtr();
+		x.reset_to_inline_empty();
+	}
+
+
+	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
+	inline void fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::move_elements_from(this_type& x)
+	{
+		EASTL_ASSERT(empty() && !has_overflowed());
+		base_type::template DoAssign<move_iterator<iterator>, true>(
+			eastl::make_move_iterator(x.begin()),
+			eastl::make_move_iterator(x.end()), false_type());
+		x.clear(true);
+	}
 
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
 	inline fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::fixed_vector()
@@ -237,43 +274,22 @@ namespace eastl
 	inline fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::fixed_vector(this_type&& x)
 		: base_type(fixed_allocator_type(mBuffer.buffer))
 	{
-		// Since we are a fixed_vector, we can't swap pointers. We can possibly so something like fixed_swap or
-		// we can just do an assignment from x. If we want to do the former then we need to have some complicated
-		// code to deal with overflow or no overflow, and whether the memory is in the fixed-size buffer or in 
-		// the overflow allocator. 90% of the time the memory should be in the fixed buffer, in which case
-		// a simple assignment is no worse than the fancy pathway.
+		reset_to_inline_empty();
+		get_allocator().copy_overflow_allocator(x.get_allocator());
 
-		// Since we are a fixed_list, we can't normally swap pointers unless both this and 
-		// x are using using overflow and the overflow allocators are equal. To do:
-		//if(has_overflowed() && x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator()))
-		//{
-		//    We can swap contents and may need to swap the allocators as well.
-		//}
+		#if EASTL_NAME_ENABLED
+			get_allocator().set_name(x.get_allocator().get_name());
+		#endif
 
-		// The following is currently identical to the fixed_vector(const this_type& x) code above. If it stays that
-		// way then we may want to make a shared implementation.
-		// LC-FIX: must initialize before has_overflowed() probe (base ctor leaves mpBegin=NULL → false-positive overflow).
-		mpBegin = mpEnd = (value_type*)&mBuffer.buffer[0];
-		internalCapacityPtr() = mpBegin + nodeCount;
-		if(has_overflowed() && x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator())) {
-			mpBegin = x.mpBegin;
-			mpEnd = x.mpEnd;
-			internalCapacityPtr() = x.internalCapacityPtr();
-		} else{
-			get_allocator().copy_overflow_allocator(x.get_allocator());
-
-			#if EASTL_NAME_ENABLED
-				get_allocator().set_name(x.get_allocator().get_name());
-			#endif
-
-			base_type::template DoAssign<move_iterator<iterator>, true>(eastl::make_move_iterator(x.begin()), eastl::make_move_iterator(x.end()), false_type());
-			if constexpr (!std::is_trivially_destructible_v<T>){
-				for(auto ptr = x.mpBegin; ptr != x.mpEnd; ++ptr){
-					ptr->~T();
-				}
+		if constexpr (bEnableOverflow)
+		{
+			if(x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator()))
+			{
+				steal_overflow_storage(x);
+				return;
 			}
 		}
-		new (std::launder(&x)) this_type();
+		move_elements_from(x);
 	}
 
 
@@ -281,25 +297,16 @@ namespace eastl
 	inline fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::fixed_vector(this_type&& x, const overflow_allocator_type& overflowAllocator)
 		: base_type(fixed_allocator_type(mBuffer.buffer, overflowAllocator))
 	{
-// See the discussion above.
-
-		// The following is currently identical to the fixed_vector(const this_type& x) code above. If it stays that
-		// way then we may want to make a shared implementation.
-		get_allocator().copy_overflow_allocator(x.get_allocator());
-
-		#if EASTL_NAME_ENABLED
-			get_allocator().set_name(x.get_allocator().get_name());
-		#endif
-
-		mpBegin = mpEnd = (value_type*)&mBuffer.buffer[0];
-		internalCapacityPtr() = mpBegin + nodeCount;
-		base_type::template DoAssign<iterator, true>(x.begin(), x.end(), false_type());
-		if constexpr (!std::is_trivially_destructible_v<T>){
-			for(auto ptr = x.mpBegin; ptr != x.mpEnd; ++ptr){
-				ptr->~T();
+		reset_to_inline_empty();
+		if constexpr (bEnableOverflow)
+		{
+			if(x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator()))
+			{
+				steal_overflow_storage(x);
+				return;
 			}
 		}
-		new (std::launder(&x)) this_type();
+		move_elements_from(x);
 	}
 
 
@@ -366,32 +373,42 @@ namespace eastl
 	inline typename fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::this_type& 
 	fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::operator=(this_type&& x)
 	{
-		// Since we are a fixed_vector, we can't swap pointers. We can possibly do something like fixed_swap or
-		// we can just do an assignment from x. If we want to do the former then we need to have some complicated
-		// code to deal with overflow or no overflow, and whether the memory is in the fixed-size buffer or in 
-		// the overflow allocator. 90% of the time the memory should be in the fixed buffer, in which case
-		// a simple assignment is no worse than the fancy pathway.
-		if (this != &x) [[likely]]
+		if (this != &x)
 		{
-			if(has_overflowed() && x.has_overflowed() && (get_overflow_allocator() == x.get_overflow_allocator())) {
-				mpBegin = x.mpBegin;
-				mpEnd = x.mpEnd;
-				internalCapacityPtr() = x.internalCapacityPtr();
-			} else{
-				clear();
+			if constexpr (bEnableOverflow)
+			{
+				if(has_overflowed() && x.has_overflowed() &&
+				   (get_overflow_allocator() == x.get_overflow_allocator()))
+				{
+					eastl::swap(mpBegin, x.mpBegin);
+					eastl::swap(mpEnd, x.mpEnd);
+					eastl::swap(internalCapacityPtr(), x.internalCapacityPtr());
+					return *this;
+				}
+				if(x.has_overflowed() &&
+				   (get_overflow_allocator() == x.get_overflow_allocator()))
+				{
+					clear(true);
+					steal_overflow_storage(x);
+					return *this;
+				}
 
 				#if EASTL_ALLOCATOR_COPY_ENABLED
-					get_allocator() = x.get_allocator(); // The primary effect of this is to copy the overflow allocator.
-				#endif
-
-				base_type::template DoAssign<move_iterator<iterator>, true>(eastl::make_move_iterator(x.begin()), eastl::make_move_iterator(x.end()), false_type()); // Shorter route.
-				if constexpr (!std::is_trivially_destructible_v<T>){
-					for(auto ptr = x.mpBegin; ptr != x.mpEnd; ++ptr){
-						ptr->~T();
+					if(x.has_overflowed())
+					{
+						clear(true);
+						get_allocator().copy_overflow_allocator(x.get_allocator());
+						steal_overflow_storage(x);
+						return *this;
 					}
-				}
+				#endif
 			}
-			new (std::launder(&x)) this_type();
+
+			clear(true);
+			#if EASTL_ALLOCATOR_COPY_ENABLED
+				get_allocator().copy_overflow_allocator(x.get_allocator());
+			#endif
+			move_elements_from(x);
 		}
 		return *this;
 	}
@@ -462,6 +479,14 @@ namespace eastl
 	{
 		mpBegin = mpEnd = (value_type*)&mBuffer.buffer[0];
 		internalCapacityPtr() = mpBegin + nodeCount;
+	}
+
+
+	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
+	inline typename fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::size_type
+	fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::max_size() const
+	{
+		return kMaxSize;
 	}
 
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
@@ -654,8 +679,6 @@ namespace eastl
 
 
 #endif // Header include guard
-
-
 
 
 
