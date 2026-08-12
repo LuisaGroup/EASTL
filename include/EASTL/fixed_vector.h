@@ -183,7 +183,7 @@ namespace eastl
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
 	inline void fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::steal_overflow_storage(this_type& x) EA_NOEXCEPT
 	{
-		EASTL_ASSERT(empty() && !has_overflowed());
+		EASTL_ASSERT(this->empty() && !has_overflowed());
 		EASTL_ASSERT(x.has_overflowed());
 		mpBegin = x.mpBegin;
 		mpEnd = x.mpEnd;
@@ -195,7 +195,7 @@ namespace eastl
 	template <typename T, size_t nodeCount, bool bEnableOverflow, typename OverflowAllocator>
 	inline void fixed_vector<T, nodeCount, bEnableOverflow, OverflowAllocator>::move_elements_from(this_type& x)
 	{
-		EASTL_ASSERT(empty() && !has_overflowed());
+		EASTL_ASSERT(this->empty() && !has_overflowed());
 		base_type::template DoAssign<move_iterator<iterator>, true>(
 			eastl::make_move_iterator(x.begin()),
 			eastl::make_move_iterator(x.end()), false_type());
